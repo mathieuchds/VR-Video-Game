@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
 
     private bool isSpeedBoostActive = false;
 
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -179,7 +180,7 @@ public class PlayerController : MonoBehaviour
         {
             velocity.y = -2f;
         }
-        
+
         float mouseX = mouseMovement.action.ReadValue<Vector2>().x * camSensitivity * Time.deltaTime;
         float mouseY = mouseMovement.action.ReadValue<Vector2>().y * camSensitivity * Time.deltaTime;
 
