@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3519676276187541506}
   - component: {fileID: 3627846293011128375}
-  - component: {fileID: 664710346854998156}
   m_Layer: 5
   m_Name: GameUI
   m_TagString: Untagged
@@ -49,24 +48,6 @@ MonoBehaviour:
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: 5e76845adc5cb6242a94641a41bf3cfd, type: 3}
   m_SortingOrder: 0
-  m_Position: 0
   m_WorldSpaceSizeMode: 1
   m_WorldSpaceWidth: 1920
   m_WorldSpaceHeight: 1080
-  m_PivotReferenceSize: 0
-  m_Pivot: 0
-  m_WorldSpaceCollider: {fileID: 0}
---- !u!114 &664710346854998156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9161292554765746550}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 722fdcfcfc517254fa647afe5ffd1ed6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameUIHandler
-  stats: {fileID: 0}
-  UIDoc: {fileID: 0}

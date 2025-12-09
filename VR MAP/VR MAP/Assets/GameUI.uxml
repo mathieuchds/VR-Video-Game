@@ -3,6 +3,6 @@
         <ui:VisualElement name="HealthBarMask" style="flex-grow: 1; position: absolute; width: 100%; height: 100%; overflow: hidden;">
             <ui:VisualElement name="HealthBarFill" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Texture/UI/HealthBarFill.png?fileID=2800000&amp;guid=4096128f4c5016548852993a4c8ff41c&amp;type=3#HealthBarFill&quot;); overflow: visible; width: 320px; height: 100%; visibility: visible; display: flex; position: absolute; background-size: 320px 100%;" />
         </ui:VisualElement>
-        <ui:Label name="HealthLabel" text="Label&#10;" style="position: absolute; width: 100%; height: 100%; font-size: 28px; -unity-text-align: middle-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+        <ui:Label name="HealthLabel" text="&#10;&#10;" style="position: absolute; width: 100%; height: 100%; font-size: 28px; -unity-text-align: middle-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
     </ui:VisualElement>
 </ui:UXML>
