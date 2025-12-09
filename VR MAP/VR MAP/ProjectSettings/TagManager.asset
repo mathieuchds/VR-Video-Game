@@ -9,6 +9,8 @@ TagManager:
   - Grass
   - Rock
   - Ligth
+  - Boss
+  - Enemy
   layers:
   - Default
   - TransparentFX
