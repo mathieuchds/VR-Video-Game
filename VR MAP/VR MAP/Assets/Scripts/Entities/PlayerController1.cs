@@ -39,6 +39,13 @@ public class PlayerController : MonoBehaviour
 
     private bool isSpeedBoostActive = false;
 
+    private bool stunEnable = false;
+    private bool speedBoostEnable = false;
+    private bool shockwaveEnable = false;
+
+
+
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -77,21 +84,65 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    
+    public void ApplyPowerUp(string powerName)
+    {
+        if (powerName == "Stun")
+        {
+            if(!stunEnable)
+            {
+                stunEnable = true;
+            }
+            else
+            {
+                stats.stunDuration += 1f;
+            }
+        }
+        else if (powerName == "SpeedBoost")
+        {
+
+            if (!speedBoostEnable)
+            {
+                speedBoostEnable = true;
+            }
+            else
+            {
+                stats.speedBoostMultiplier += 0.5f; 
+                stats.speedBoostDuration += 1f; 
+            }
+
+        }else if (powerName == "Shockwave")
+        {
+            if (!shockwaveEnable)
+            {
+                shockwaveEnable = true;
+            }
+            else
+            {
+                stats.shockwaveDamage += 10f;
+                stats.shockwaveRadius += 1f;
+            }
+        }
+    }
 
 
     private void PowerUpPressed(InputAction.CallbackContext obj)
     {
         var control = obj.control;
 
-        if (control.name == "q")
+        if (stunEnable && control.name == "q")
         {
             StunAround();
         }
-        else if (control.name == "e")
+        else if (speedBoostEnable && control.name == "e")
         {
             SpeedBoost();
         }
+        PowerSelectionManager tmp = FindObjectOfType<PowerSelectionManager>();
+        if(tmp != null)
+        {
+            tmp.ShowSelection();
+        }
+
     }
 
     private void StunAround()
@@ -157,7 +208,10 @@ public class PlayerController : MonoBehaviour
         if (isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
-            DoShockwave();
+            if (shockwaveEnable)
+            {
+                DoShockwave();
+            }
         }
     }
 
