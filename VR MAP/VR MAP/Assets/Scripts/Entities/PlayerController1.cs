@@ -249,4 +249,11 @@ public class PlayerController : MonoBehaviour
         velocity.y += gravity * Time.deltaTime *2f;
         controller.Move(velocity * Time.deltaTime);
     }
+
+    public void Respawn(Vector3 respawnPosition)
+    {
+        controller.enabled = false;
+        controller.transform.position = respawnPosition;
+        controller.enabled = true;
+    }
 }
