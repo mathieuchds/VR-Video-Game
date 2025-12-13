@@ -1,0 +1,56 @@
+
+.power-selection-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden; /* caché par défaut */
+    z-index: 1000;
+}
+
+
+.power-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* sombre */
+}
+
+
+.power-cards-row {
+    flex-direction: row;
+    gap: 18px;
+    padding: 20px;
+    z-index: 1001;
+}
+
+
+.power-card {
+    width: 220px;
+    height: 160px;
+    border-radius: 12px;
+    background-color: #202020;
+    border: 2px solid #404040;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    transition: scale 0.12s, background-color 0.12s;
+}
+
+.power-card:hover {
+    scale: 1.06;
+    background-color: #333333;
+}
+
+.power-title {
+    font-size: 16px;
+    unity-font-style: bold;
+    color: white;
+    text-align: center;
+}
+

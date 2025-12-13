@@ -11,6 +11,7 @@ TagManager:
   - Ligth
   - Boss
   - Enemy
+  - Cliff
   layers:
   - Default
   - TransparentFX

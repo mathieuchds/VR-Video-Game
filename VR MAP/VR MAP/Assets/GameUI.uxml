@@ -1,8 +1,13 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/power-selection-root.uss?fileID=7433441132597879392&amp;guid=e5055a9b2411017418165f0bef6c6fd5&amp;type=3#power-selection-root" />
+    <ui:VisualElement name="PowerSelectionContainer" class="power-selection-root" style="flex-grow: 1; height: auto; top: 0;">
+        <ui:VisualElement name="PowerSelectionBackground" class="power-background" style="flex-grow: 1;" />
+        <ui:VisualElement name="PowerCards" class="power-cards" style="flex-grow: 1; align-content: center; align-self: auto; width: 427px; justify-content: flex-end; align-items: center; flex-direction: column-reverse;" />
+    </ui:VisualElement>
     <ui:VisualElement name="HealthBarBackground" style="flex-grow: 1; position: absolute; width: 322px; height: 82px; background-image: url(&quot;project://database/Assets/Texture/UI/HealthbarBackground.png?fileID=2800000&amp;guid=15c866e1b01433d4da2b3d14a856ada0&amp;type=3#HealthbarBackground&quot;); top: 346px; left: 531px; right: 522px; bottom: 23px; justify-content: flex-start;">
-        <ui:VisualElement name="HealthBarMask" style="flex-grow: 1; position: absolute; width: 100%; height: 100%; overflow: hidden;">
+        <ui:VisualElement name="HealthBarMask" picking-mode="Ignore" style="flex-grow: 1; position: absolute; width: 100%; height: 100%; overflow: hidden;">
             <ui:VisualElement name="HealthBarFill" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Texture/UI/HealthBarFill.png?fileID=2800000&amp;guid=4096128f4c5016548852993a4c8ff41c&amp;type=3#HealthBarFill&quot;); overflow: visible; width: 320px; height: 100%; visibility: visible; display: flex; position: absolute; background-size: 320px 100%;" />
         </ui:VisualElement>
-        <ui:Label name="HealthLabel" text="&#10;&#10;" style="position: absolute; width: 100%; height: 100%; font-size: 28px; -unity-text-align: middle-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+        <ui:Label name="HealthLabel" text="&#10;&#10;" picking-mode="Ignore" style="position: absolute; width: 100%; height: 100%; font-size: 28px; -unity-text-align: middle-center; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
     </ui:VisualElement>
 </ui:UXML>
