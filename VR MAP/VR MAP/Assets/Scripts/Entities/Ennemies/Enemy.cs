@@ -3,12 +3,14 @@ using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private EnemyHealthBar healthBar;
+    [SerializeField] public EnemyHealthBar healthBar;
     public float maxHealth = 100f;
     public float health;
     public float contactDamage = 10f;
+    public float speed = 3f;
 
     public float flashTime = 0.1f;
+    public bool isStunned = false;
 
     private Renderer rend;
     private Color baseColor;
@@ -17,7 +19,7 @@ public class Enemy : MonoBehaviour
 
     public EnemySpawner spawner;
 
-    UnityEngine.AI.NavMeshAgent agent;
+    protected UnityEngine.AI.NavMeshAgent agent;
 
     void Start()
     {
@@ -58,16 +60,16 @@ public class Enemy : MonoBehaviour
         StartCoroutine(KnockbackRoutine(direction, force, duration));
     }
 
-    private IEnumerator KnockbackRoutine(Vector3 dir, float force, float duration)
+    protected IEnumerator KnockbackRoutine(Vector3 dir, float force, float duration)
     {
+
         dir.y = 0f;
         dir.Normalize();
 
         if (rb == null)
             yield break;
 
-        // D�sactiver temporairement l'agent pour permettre la physique,
-        // rendre le Rigidbody non-kinematic, appliquer la force puis restaurer.
+
         bool hadAgent = agent != null && agent.enabled;
         if (hadAgent) agent.enabled = false;
 
@@ -84,11 +86,13 @@ public class Enemy : MonoBehaviour
 
     public void Stun(float duration)
     {
-        StartCoroutine(StunRoutine(agent != null ? agent.speed : 0f, duration));
+        StartCoroutine(StunRoutine(speed, duration));
     }
 
-    private IEnumerator StunRoutine(float baseSpeed, float duration)
+    protected IEnumerator StunRoutine(float baseSpeed, float duration)
     {
+        isStunned = true;
+
         if (agent != null)
             agent.speed = 0f;
 
@@ -96,6 +100,9 @@ public class Enemy : MonoBehaviour
 
         if (agent != null)
             agent.speed = baseSpeed;
+        isStunned = false;
+
+
     }
 
     public void TakeDamage(float dmg)
@@ -115,7 +122,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
