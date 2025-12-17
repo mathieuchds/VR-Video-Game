@@ -319,7 +319,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 0}
-  bar: {fileID: 0}
+  bar: {fileID: 3312713966151047163}
 --- !u!114 &316226154048618342
 MonoBehaviour:
   m_ObjectHideFlags: 0
