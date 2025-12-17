@@ -49,24 +49,6 @@ public class Fireball : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        if (!other.isTrigger)
-        {
-            Destroy(gameObject);
-        }
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        var other = collision.collider;
-        Debug.Log($"[Fireball:{name}] OnCollisionEnter with {other.name} (tag={other.tag})");
-        if (other.CompareTag("Player"))
-        {
-            var ps = other.GetComponent<PlayerStats>();
-            if (ps != null)
-                ps.TakeDamage(damage);
-        }
-
-        Destroy(gameObject);
-    }
 }
