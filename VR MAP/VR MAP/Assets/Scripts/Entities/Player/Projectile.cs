@@ -20,8 +20,11 @@ public class Projectile : MonoBehaviour
         if (enemy != null)
         {
             enemy.TakeDamage(damage);
+
         }
 
         Destroy(gameObject); // disparaît après impact
+
+
     }
 }
