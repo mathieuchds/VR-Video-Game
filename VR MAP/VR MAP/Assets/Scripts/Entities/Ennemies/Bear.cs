@@ -11,7 +11,6 @@ public class Bear : Enemy
     public Animator animator;
 
     private Transform player;
-    private UnityEngine.AI.NavMeshAgent agent;
     private float lastAttackTime = -999f; // Permet d'attaquer dès le début
     private bool isInAttackRange = false;
 
