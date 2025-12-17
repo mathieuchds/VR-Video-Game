@@ -3,8 +3,8 @@ using UnityEngine.AI;
 using System.Collections;
 
 /// <summary>
-/// Petit démon volant :  se déplace rapidement vers le joueur. 
-/// Quand proche, dash à travers lui en infligeant des dégâts, puis se repose (chill).
+/// Petit démon volant :   se déplace rapidement vers le joueur.   
+/// Reste à distance (outerCircle), puis dash à travers le joueur quand prêt.
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class Devil : Enemy
@@ -15,20 +15,23 @@ public class Devil : Enemy
     [SerializeField] private Animator animator;
 
     [Header("Distances & Zones")]
-    [SerializeField] private float outerCircleRadius = 15f; // Rayon du grand cercle (zone d'approche)
-    [SerializeField] private float innerCircleRadius = 5f;  // Rayon du petit cercle (zone de charge)
+    [SerializeField] private float outerCircleRadius = 15f; // Distance de maintien autour du joueur
+    [SerializeField] private float innerCircleRadius = 3f;  // Distance minimale du dash (traversée)
 
     [Header("Déplacement")]
-    [SerializeField] private float normalSpeed = 6f;        // Vitesse normale d'approche
-    [SerializeField] private float dashSpeed = 25f;         // Vitesse du dash
+    [SerializeField] private float normalSpeed = 8f;        // Vitesse normale d'approche
+    [SerializeField] private float dashSpeed = 30f;         // Vitesse du dash
+    [SerializeField] private float flyHeight = 3f;          // Hauteur de vol au-dessus du sol
 
     [Header("Combat")]
     [SerializeField] private float dashDamage = 15f;        // Dégâts du dash
     [SerializeField] private float chillDuration = 1.5f;    // Temps de repos après dash
-    [SerializeField] private float dashHitRadius = 1.5f;    // Rayon de détection pendant le dash
+    [SerializeField] private float dashHitRadius = 2f;      // Rayon de détection pendant le dash
+    [SerializeField] private float dashHeightOffset = 0.5f; // Hauteur au-dessus du joueur pendant le dash
 
     [Header("Cooldowns")]
     [SerializeField] private float dashCooldown = 3f;       // Cooldown entre deux dashs
+    [SerializeField] private float dashPreparationTime = 0.5f; // Temps avant de lancer le dash
 
     // États pour l'Animator
     private static readonly int ParamIsRunning = Animator.StringToHash("IsRunning");
@@ -40,7 +43,8 @@ public class Devil : Enemy
     private enum DevilState
     {
         Idle,           // Repos
-        Approaching,    // Se déplace vers le joueur (IsRunning)
+        Approaching,    // Se déplace vers le cercle extérieur (IsRunning)
+        Orbiting,       // Tourne autour du joueur à distance
         Charging,       // En train de dasher (IsCharging)
         Chilling        // Repos après dash (IsChilling)
     }
@@ -51,10 +55,16 @@ public class Devil : Enemy
     private Vector3 dashDirection;
     private Vector3 dashEndPosition;
     private Vector3 dashStartPosition;
+    private Vector3 dashMidPosition; // Point au niveau du joueur
     private float dashProgress = 0f;
+    private Vector3 orbitPosition;
+    private float orbitAngle = 0f;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
+
+    private Collider devilCollider;
+    private int originalLayer;
 
     void Start()
     {
@@ -66,8 +76,11 @@ public class Devil : Enemy
         if (agent != null)
         {
             agent.speed = normalSpeed;
-            agent.updatePosition = true;
-            agent.updateRotation = false; // On gère la rotation manuellement
+            agent.updatePosition = false; // ✅ On gère la position manuellement pendant le dash
+            agent.updateRotation = false;
+
+            // ✅ Permettre au Devil de voler (ignorer le NavMesh en hauteur)
+            agent.baseOffset = flyHeight;
 
             if (rb != null)
                 rb.isKinematic = true;
@@ -96,6 +109,12 @@ public class Devil : Enemy
             Debug.Log($"[Devil:{name}] Target trouvé : {target.name}");
 
         currentState = DevilState.Approaching;
+
+        devilCollider = GetComponent<Collider>();
+        if (devilCollider == null)
+            devilCollider = GetComponentInChildren<Collider>();
+
+        originalLayer = gameObject.layer;
     }
 
     void Update()
@@ -110,6 +129,10 @@ public class Devil : Enemy
                 HandleApproaching(distanceToPlayer);
                 break;
 
+            case DevilState.Orbiting:
+                HandleOrbiting(distanceToPlayer);
+                break;
+
             case DevilState.Charging:
                 HandleCharging();
                 break;
@@ -117,6 +140,12 @@ public class Devil : Enemy
             case DevilState.Chilling:
                 // État géré par coroutine
                 break;
+        }
+
+        // ✅ Synchroniser le NavMeshAgent quand on ne dash pas
+        if (currentState != DevilState.Charging && agent != null && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.nextPosition = transform.position;
         }
 
         // Rotation vers la direction de mouvement (sauf en chill)
@@ -135,27 +164,75 @@ public class Devil : Enemy
 
     private void HandleApproaching(float distanceToPlayer)
     {
-        // Se déplacer vers le joueur
+        // ✅ Se déplacer vers le bord du cercle extérieur (pas vers le joueur directement)
+        if (distanceToPlayer > outerCircleRadius + 2f)
+        {
+            // Trop loin :  se rapprocher
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = false;
+                agent.speed = normalSpeed;
+
+                // Destination : un point à outerCircleRadius du joueur
+                Vector3 directionToPlayer = (target.position - transform.position).normalized;
+                Vector3 targetPos = target.position - directionToPlayer * outerCircleRadius;
+                targetPos.y += flyHeight;
+
+                agent.SetDestination(targetPos);
+                transform.position = agent.nextPosition;
+            }
+
+            UpdateAnimatorState(isRunning: true, isCharging: false, isChilling: false);
+        }
+        else
+        {
+            // ✅ Arrivé à distance : passer en mode orbite
+            currentState = DevilState.Orbiting;
+            Debug.Log($"[Devil:{name}] 🔄 Passage en mode Orbiting");
+        }
+    }
+
+    private void HandleOrbiting(float distanceToPlayer)
+    {
+        // ✅ Tourner autour du joueur à distance outerCircleRadius
+        orbitAngle += Time.deltaTime * 50f; // Vitesse de rotation (degrés/sec)
+
+        float radian = orbitAngle * Mathf.Deg2Rad;
+        Vector3 offset = new Vector3(Mathf.Cos(radian), 0f, Mathf.Sin(radian)) * outerCircleRadius;
+        orbitPosition = target.position + offset;
+        orbitPosition.y = target.position.y + flyHeight;
+
+        // Se déplacer vers la position d'orbite
         if (agent != null && agent.enabled && agent.isOnNavMesh)
         {
             agent.isStopped = false;
             agent.speed = normalSpeed;
-            agent.SetDestination(target.position);
+            agent.SetDestination(orbitPosition);
+            transform.position = agent.nextPosition;
         }
 
-        // Mettre à jour l'Animator
         UpdateAnimatorState(isRunning: true, isCharging: false, isChilling: false);
 
-        // Si on entre dans le cercle intérieur ET qu'on peut dasher → DASH ! 
-        if (distanceToPlayer <= innerCircleRadius && canDash)
+        // ✅ Si on peut dasher, préparer l'attaque
+        if (canDash)
         {
-            StartDash();
+            StartCoroutine(PrepareDash());
         }
+    }
+
+    private IEnumerator PrepareDash()
+    {
+        canDash = false; // Empêcher de relancer pendant la préparation
+
+        // Attendre un peu (le Devil se positionne)
+        yield return new WaitForSeconds(dashPreparationTime);
+
+        StartDash();
     }
 
     private void HandleCharging()
     {
-        // ✅ Vérifier si on touche le joueur pendant le dash (sécurité si coroutine rate)
+        // ✅ Vérifier si on touche le joueur pendant le dash
         if (!hasHitPlayerThisDash)
         {
             float distToPlayer = Vector3.Distance(transform.position, target.position);
@@ -171,7 +248,6 @@ public class Devil : Enemy
         Debug.Log($"[Devil:{name}] 🔥 DASH DÉMARRÉ !");
 
         currentState = DevilState.Charging;
-        canDash = false;
         hasHitPlayerThisDash = false;
         dashProgress = 0f;
 
@@ -179,27 +255,33 @@ public class Devil : Enemy
         if (agent != null && agent.enabled)
             agent.isStopped = true;
 
-        // Calculer la direction du dash :  du Devil vers le joueur
-        Vector3 toPlayer = (target.position - transform.position).normalized;
-        toPlayer.y = 0f; // Rester au même niveau Y (volant)
-        dashDirection = toPlayer;
+        // ✅ Changer le layer pour "Ignore Raycast" (pas de collisions)
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
-        // Point de départ :  position actuelle
+        // Aussi changer les enfants
+        foreach (Transform child in transform)
+        {
+            child.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        }
+
+        // ✅ Point de départ :  position actuelle (en hauteur)
         dashStartPosition = transform.position;
 
-        // Point d'arrivée : de l'autre côté du cercle extérieur
-        // On passe par le joueur (centre) et on continue jusqu'au bord opposé
-        dashEndPosition = target.position + dashDirection * outerCircleRadius;
+        // ✅ Point du milieu :  DIRECTEMENT sur le joueur (à dashHeightOffset au-dessus)
+        dashMidPosition = target.position + Vector3.up * dashHeightOffset;
 
-        // Si le NavMesh ne peut pas atteindre ce point, on ajuste
-        if (agent != null && agent.isOnNavMesh)
-        {
-            NavMeshHit navHit;
-            if (NavMesh.SamplePosition(dashEndPosition, out navHit, outerCircleRadius, NavMesh.AllAreas))
-            {
-                dashEndPosition = navHit.position;
-            }
-        }
+        // ✅ Calculer la direction horizontale du dash
+        Vector3 horizontalDirection = new Vector3(
+            target.position.x - dashStartPosition.x,
+            0f,
+            target.position.z - dashStartPosition.z
+        ).normalized;
+
+        dashDirection = horizontalDirection;
+
+        // ✅ Point d'arrivée : de l'AUTRE CÔTÉ du joueur, en hauteur
+        dashEndPosition = target.position + horizontalDirection * (outerCircleRadius - 2f);
+        dashEndPosition.y = target.position.y + flyHeight;
 
         UpdateAnimatorState(isRunning: false, isCharging: true, isChilling: false);
 
@@ -208,8 +290,8 @@ public class Devil : Enemy
 
     private IEnumerator DashCoroutine()
     {
-        Vector3 startPos = transform.position;
-        float dashDuration = Vector3.Distance(startPos, dashEndPosition) / dashSpeed;
+        float totalDistance = Vector3.Distance(dashStartPosition, dashMidPosition) + Vector3.Distance(dashMidPosition, dashEndPosition);
+        float dashDuration = totalDistance / dashSpeed;
         float elapsed = 0f;
 
         while (elapsed < dashDuration)
@@ -217,8 +299,24 @@ public class Devil : Enemy
             elapsed += Time.deltaTime;
             dashProgress = elapsed / dashDuration;
 
-            // Interpolation linéaire (dash rapide)
-            transform.position = Vector3.Lerp(startPos, dashEndPosition, dashProgress);
+            // ✅ Trajectoire en 2 phases :  descente puis remontée
+            Vector3 newPosition;
+
+            if (dashProgress < 0.5f)
+            {
+                // Phase 1 :  Descente vers le joueur (0 → 0.5)
+                float phase1Progress = dashProgress * 2f; // 0 → 1
+                newPosition = Vector3.Lerp(dashStartPosition, dashMidPosition, phase1Progress);
+            }
+            else
+            {
+                // Phase 2 : Remontée de l'autre côté (0.5 → 1)
+                float phase2Progress = (dashProgress - 0.5f) * 2f; // 0 → 1
+                newPosition = Vector3.Lerp(dashMidPosition, dashEndPosition, phase2Progress);
+            }
+
+            // ✅ Appliquer la position (ignore collisions)
+            transform.position = newPosition;
 
             // Vérifier si on touche le joueur pendant le dash
             if (!hasHitPlayerThisDash)
@@ -262,6 +360,15 @@ public class Devil : Enemy
     private void StartChill()
     {
         currentState = DevilState.Chilling;
+
+        // ✅ Restaurer le layer original
+        gameObject.layer = originalLayer;
+
+        foreach (Transform child in transform)
+        {
+            child.gameObject.layer = originalLayer;
+        }
+
         UpdateAnimatorState(isRunning: false, isCharging: false, isChilling: true);
 
         StartCoroutine(ChillCoroutine());
@@ -272,10 +379,10 @@ public class Devil : Enemy
         // Repos pendant chillDuration secondes
         yield return new WaitForSeconds(chillDuration);
 
-        Debug.Log($"[Devil:{name}] 😎 Chill terminé, retour en approche.");
+        Debug.Log($"[Devil:{name}] 😎 Chill terminé, retour en orbite.");
 
-        // Retour en mode approche
-        currentState = DevilState.Approaching;
+        // Retour en mode orbite
+        currentState = DevilState.Orbiting;
         UpdateAnimatorState(isRunning: true, isCharging: false, isChilling: false);
 
         // Réactiver le dash après le cooldown
@@ -298,13 +405,13 @@ public class Devil : Enemy
     {
         if (!showDebugGizmos || target == null) return;
 
-        // Cercle extérieur (zone d'approche)
+        // Cercle extérieur (zone d'orbite)
         Gizmos.color = new Color(1f, 1f, 0f, 0.1f);
         Gizmos.DrawSphere(target.position, outerCircleRadius);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(target.position, outerCircleRadius);
 
-        // Cercle intérieur (zone de dash)
+        // Cercle intérieur (zone de passage)
         Gizmos.color = new Color(1f, 0f, 0f, 0.15f);
         Gizmos.DrawSphere(target.position, innerCircleRadius);
         Gizmos.color = Color.red;
@@ -314,11 +421,25 @@ public class Devil : Enemy
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
         Gizmos.DrawWireSphere(transform.position, dashHitRadius);
 
+        // Position d'orbite
+        if (currentState == DevilState.Orbiting)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(orbitPosition, 0.5f);
+            Gizmos.DrawLine(transform.position, orbitPosition);
+        }
+
         // Ligne du dash (si en charge)
         if (currentState == DevilState.Charging)
         {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(transform.position, dashEndPosition);
+            Gizmos.color = Color.magenta;
+            // Trajectoire en V :  descente puis remontée
+            Gizmos.DrawLine(dashStartPosition, dashMidPosition);
+            Gizmos.DrawLine(dashMidPosition, dashEndPosition);
+
+            // Point sur le joueur
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(dashMidPosition, 0.5f);
         }
     }
 }
