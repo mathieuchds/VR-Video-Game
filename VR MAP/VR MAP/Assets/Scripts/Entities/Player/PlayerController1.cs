@@ -1,5 +1,4 @@
-using System.ComponentModel.Design;
-using System.Diagnostics;
+
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -42,15 +41,33 @@ public class PlayerController : MonoBehaviour
     private bool stunEnable = false;
     private bool speedBoostEnable = false;
     private bool shockwaveEnable = false;
+    private bool bombaEnable = false;
 
 
+    [Header("Cooldowns")]
+    [SerializeField] private float stunCooldown = 8f;
+    [SerializeField] private float speedBoostCooldown = 5f;
+    [SerializeField] private float bombaCooldown = 10f;
 
+    private float stunTimer = 0f;
+    private float speedBoostTimer = 0f;
+    private float bombaTimer = 0f;
+
+    private AbilitySlotUI a1;
+    private AbilitySlotUI a2;
+    private AbilitySlotUI a3;
+    private AbilitySlotUI a4;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         stats = GetComponent<PlayerStats>();
+        a1 = GameObject.Find("Slot_1").GetComponent<AbilitySlotUI>();
+        a2 = GameObject.Find("Slot_2").GetComponent<AbilitySlotUI>();
+        a3 = GameObject.Find("Slot_3").GetComponent<AbilitySlotUI>();
+        a4 = GameObject.Find("Slot_4").GetComponent<AbilitySlotUI>();
+
         if (zqsd)
         {
             zqsd.action.Enable();
@@ -88,9 +105,10 @@ public class PlayerController : MonoBehaviour
     {
         if (powerName == "Stun")
         {
-            if(!stunEnable)
+            if (!stunEnable)
             {
                 stunEnable = true;
+                a1.Unlock();
             }
             else
             {
@@ -103,14 +121,16 @@ public class PlayerController : MonoBehaviour
             if (!speedBoostEnable)
             {
                 speedBoostEnable = true;
+                a2.Unlock();
             }
             else
             {
-                stats.speedBoostMultiplier += 0.5f; 
-                stats.speedBoostDuration += 1f; 
+                stats.speedBoostMultiplier += 0.5f;
+                stats.speedBoostDuration += 1f;
             }
 
-        }else if (powerName == "Shockwave")
+        }
+        else if (powerName == "Shockwave")
         {
             if (!shockwaveEnable)
             {
@@ -122,27 +142,60 @@ public class PlayerController : MonoBehaviour
                 stats.shockwaveRadius += 1f;
             }
         }
-    }
+        else if (powerName == "Bomba")
+        {
+            if (!bombaEnable)
+            {
+                gun.AddModule("gun_module_rocket");
+                bombaEnable = true;
+                a3.Unlock();
+            }
+            else
+            {
+                stats.explosionDamage += 15f;
+                stats.explosionRadius += 1f;
+            }
+        }else if(powerName == "PoisonBullet")
+        {
 
+        }
+
+    }
 
     private void PowerUpPressed(InputAction.CallbackContext obj)
     {
         var control = obj.control;
 
-        if (stunEnable && control.name == "q")
+        if (stunEnable && control.name == "1" && stunTimer<=0f)
         {
             StunAround();
+            stunTimer = stunCooldown;
         }
-        else if (speedBoostEnable && control.name == "e")
+        else if (speedBoostEnable && control.name == "2" && speedBoostTimer<=0f)
         {
             SpeedBoost();
-        }
-        PowerSelectionManager tmp = FindObjectOfType<PowerSelectionManager>();
-        if(tmp != null)
+            speedBoostTimer = speedBoostCooldown;
+        }else if (bombaEnable && control.name == "3" && bombaTimer<=0f)
         {
-            tmp.ShowSelection();
+            ThrowBomba();
+            bombaTimer = bombaCooldown;
+        }
+        else if (control.name == "x")
+        {
+            PowerSelectionManager psm = FindObjectOfType<PowerSelectionManager>();
+            if (psm != null)
+            {
+                psm.ShowPowerSelection();
+            }
+
         }
 
+
+    }
+
+    private void ThrowBomba()
+    {
+        gun.Throw();
     }
 
     private void StunAround()
@@ -216,9 +269,6 @@ public class PlayerController : MonoBehaviour
     }
 
     
-
-
-
     private void FirePressed(InputAction.CallbackContext obj)
     {
         gun.Shoot(stats.attackDamage);
@@ -248,6 +298,27 @@ public class PlayerController : MonoBehaviour
         
         velocity.y += gravity * Time.deltaTime *2f;
         controller.Move(velocity * Time.deltaTime);
+
+        if (stunTimer > 0)
+        {
+            stunTimer -= Time.deltaTime;
+            a1.UpdateCooldown(stunTimer, stunCooldown);
+        }
+             
+
+        if (speedBoostTimer > 0)
+        {
+            speedBoostTimer -= Time.deltaTime;
+            a2.UpdateCooldown(speedBoostTimer, speedBoostCooldown);
+        }
+
+        if(bombaTimer > 0)
+        {
+            bombaTimer -= Time.deltaTime;
+            a3.UpdateCooldown(bombaTimer, bombaCooldown);
+        }
+
+
     }
 
     public void Respawn(Vector3 respawnPosition)

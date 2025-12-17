@@ -13,7 +13,6 @@ public class Wizard : Enemy
     [Header("Références")]
     [SerializeField] private GameObject targetObject;
     private Transform target;
-    private NavMeshAgent agent;
 
     [SerializeField] private Transform firePoint;
     [SerializeField] private GameObject fireballPrefab;
@@ -46,7 +45,20 @@ public class Wizard : Enemy
 
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
+        agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+
+        if (agent != null)
+        {
+            agent.updatePosition = true;
+            agent.updateRotation = true;
+            if (rb != null)
+                rb.isKinematic = true;
+        }
+
+        health = maxHealth;
+        healthBar.SetHealth(1f);
 
         if (targetObject != null)
             target = targetObject.transform;
@@ -85,57 +97,61 @@ public class Wizard : Enemy
 
         // Déplacement : avancer seulement si on est plus loin que stopDistance (+ epsilon)
         bool shouldRun = dist > (stopDistance + epsilon);
-        if (agent != null && agent.enabled && agent.isOnNavMesh)
+        if (!isStunned)
         {
-            if (shouldRun)
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
             {
-                agent.isStopped = false;
-                agent.SetDestination(target.position);
+                if (shouldRun)
+                {
+                    agent.isStopped = false;
+                    agent.SetDestination(target.position);
+                }
+                else
+                {
+                    agent.isStopped = true;
+                    agent.ResetPath();
+                }
             }
-            else
+
+            // Mettre à jour l'Animator (Run/Idle)
+            if (animator != null)
+                animator.SetBool(ParamIsRunning, shouldRun);
+
+            // Attaque : tirer quand le joueur est à stopDistance ou plus proche
+            bool canAttack = dist <= (stopDistance + epsilon);
+
+            if (canAttack && !isAttacking)
             {
-                agent.isStopped = true;
-                agent.ResetPath();
+                Debug.Log($"[Wizard:{name}] Entrée zone d'attaque (dist={dist:F2}). Démarrage AttackLoop.");
+                attackCoroutine = StartCoroutine(AttackLoop());
             }
-        }
-
-        // Mettre à jour l'Animator (Run/Idle)
-        if (animator != null)
-            animator.SetBool(ParamIsRunning, shouldRun);
-
-        // Attaque : tirer quand le joueur est à stopDistance ou plus proche
-        bool canAttack = dist <= (stopDistance + epsilon);
-
-        if (canAttack && !isAttacking)
-        {
-            Debug.Log($"[Wizard:{name}] Entrée zone d'attaque (dist={dist:F2}). Démarrage AttackLoop.");
-            attackCoroutine = StartCoroutine(AttackLoop());
-        }
-        else if (!canAttack && isAttacking)
-        {
-            Debug.Log($"[Wizard:{name}] Sortie zone d'attaque (dist={dist:F2}). Arrêt AttackLoop.");
-            if (attackCoroutine != null)
-                StopCoroutine(attackCoroutine);
-            attackCoroutine = null;
-            isAttacking = false;
-        }
-
-        // Rotation vers le joueur (douce)
-        Vector3 lookDir = target.position - transform.position;
-        lookDir.y = 0f;
-        if (lookDir.sqrMagnitude > 0.001f)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 6f);
-
-        // Debug périodique
-        if (debugLogInterval > 0f)
-        {
-            debugLogTimer -= Time.deltaTime;
-            if (debugLogTimer <= 0f)
+            else if (!canAttack && isAttacking)
             {
-                Debug.Log($"[WizardStatus:{name}] pos={transform.position} dist={dist:F2} shouldRun={shouldRun} canAttack={canAttack} isAttacking={isAttacking} attackCoroutine={(attackCoroutine!=null)}");
-                debugLogTimer = debugLogInterval;
+                Debug.Log($"[Wizard:{name}] Sortie zone d'attaque (dist={dist:F2}). Arrêt AttackLoop.");
+                if (attackCoroutine != null)
+                    StopCoroutine(attackCoroutine);
+                attackCoroutine = null;
+                isAttacking = false;
+            }
+
+            // Rotation vers le joueur (douce)
+            Vector3 lookDir = target.position - transform.position;
+            lookDir.y = 0f;
+            if (lookDir.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 6f);
+
+            // Debug périodique
+            if (debugLogInterval > 0f)
+            {
+                debugLogTimer -= Time.deltaTime;
+                if (debugLogTimer <= 0f)
+                {
+                    Debug.Log($"[WizardStatus:{name}] pos={transform.position} dist={dist:F2} shouldRun={shouldRun} canAttack={canAttack} isAttacking={isAttacking} attackCoroutine={(attackCoroutine!=null)}");
+                    debugLogTimer = debugLogInterval;
+                }
             }
         }
+
     }
 
     private System.Collections.IEnumerator AttackLoop()
@@ -143,7 +159,10 @@ public class Wizard : Enemy
         isAttacking = true;
         while (true)
         {
-            if (animator != null)
+            if (isStunned)
+            {
+                yield return null;
+            }else if (animator != null)
             {
                 Debug.Log($"[Wizard:{name}] Déclenche trigger Shoot sur Animator.");
                 animator.SetTrigger(ParamShoot);
@@ -151,9 +170,7 @@ public class Wizard : Enemy
                 // Ne pas spawner depuis le script : le projectile DOIT être instancié par l'Animation Event
                 // On attend un petit délai pour laisser l'animation démarrer (optionnel)
                 yield return new WaitForSeconds(attackDelayAfterTrigger);
-            }
-            else
-            {
+            }else{
                 // Si pas d'Animator (fallback) on déclenche directement le spawn
                 ShootAtTarget();
             }
