@@ -25,13 +25,12 @@ public class Bomba : MonoBehaviour
 
     void Explode()
     {
-
-
         Collider[] enemies = Physics.OverlapSphere(transform.position, explosionRadius);
 
         foreach (Collider hit in enemies)
         {
-            Enemy enemy = hit.GetComponent<Enemy>();
+            Enemy enemy = hit.GetComponentInParent<Enemy>();
+            if (enemy == null) continue;
             if (enemy != null)
             {
                 enemy.TakeDamage(explosionDamage);
