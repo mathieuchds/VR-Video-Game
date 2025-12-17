@@ -1,54 +1,79 @@
 using UnityEngine;
 
-
-/// <summary>
-/// Projectile de boule de feu : gère la trajectoire, dégâts au joueur et destruction après durée.
-/// Le prefab doit avoir un Collider (isTrigger ou non) et un Rigidbody (kinematic = false).
-/// </summary>
-[RequireComponent(typeof(Rigidbody))]
-public class Fireball : MonoBehaviour
+public class FireBall : MonoBehaviour
 {
-    private Rigidbody rb;
-    private float damage = 10f;
-    private float lifetime = 6f;
+    public float damage = 10f;
+    public float speed = 15f;
+    private Vector3 direction;
 
-    void Awake()
+    [Header("Raycast Settings")]
+    [SerializeField] private float sphereRadius = 0.8f; // Plus gros rayon
+
+    private bool hasHit = false;
+    private Vector3 lastPosition;
+
+    public void SetDirection(Vector3 dir)
     {
-        rb = GetComponent<Rigidbody>();
+        direction = dir.normalized;
     }
 
-    public void Initialize(Vector3 direction, float speed, float dmg, float life)
+    private void Start()
     {
-        damage = dmg;
-        lifetime = life;
+        lastPosition = transform.position;
+    }
 
-        Debug.Log($"[Fireball:{name}] Initialize dir={direction} speed={speed} dmg={dmg} life={life}");
+    private void FixedUpdate()
+    {
+        if (direction == Vector3.zero || hasHit) return;
 
-        if (rb != null)
+        Vector3 currentPosition = transform.position;
+        float distanceThisFrame = speed * Time.fixedDeltaTime;
+        Vector3 nextPosition = currentPosition + direction * distanceThisFrame;
+
+        // ✅ RAYCAST entre la position précédente et la prochaine position
+        // Cela garantit qu'on ne rate JAMAIS une collision
+        float totalDistance = Vector3.Distance(lastPosition, nextPosition);
+
+        RaycastHit hit;
+        if (Physics.SphereCast(lastPosition, sphereRadius, direction, out hit, totalDistance))
         {
-            rb.linearVelocity = direction.normalized * speed; // corrigé : velocity
-            rb.useGravity = false;
-        }
-        else
-        {
-            Debug.LogWarning($"[Fireball:{name}] Pas de Rigidbody trouvé !");
+            Debug.DrawLine(lastPosition, hit.point, Color.red, 1f);
+
+            if (hit.collider.gameObject != gameObject && hit.collider.CompareTag("Player"))
+            {
+                hasHit = true;
+
+                PlayerStats ps = hit.collider.GetComponent<PlayerStats>();
+                if (ps != null)
+                {
+                    ps.TakeDamage(damage);
+                    Debug.Log($"[FireBall] ✅ {damage} dégâts infligés via RAYCAST!");
+                }
+
+                Destroy(gameObject);
+                return;
+            }
         }
 
-        Destroy(gameObject, lifetime);
+        // Déplacer
+        transform.position = nextPosition;
+        lastPosition = nextPosition;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"[Fireball:{name}] OnTriggerEnter with {other.name} (tag={other.tag})");
+        if (hasHit || other.gameObject == gameObject) return;
+
         if (other.CompareTag("Player"))
         {
-            var ps = other.GetComponent<PlayerStats>();
+            hasHit = true;
+            PlayerStats ps = other.GetComponent<PlayerStats>();
             if (ps != null)
+            {
                 ps.TakeDamage(damage);
-
+                Debug.Log($"[FireBall] ✅ {damage} dégâts infligés via TRIGGER!");
+            }
             Destroy(gameObject);
-            return;
         }
     }
-
 }

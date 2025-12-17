@@ -56,9 +56,10 @@ public class Wizard : Enemy
             if (rb != null)
                 rb.isKinematic = true;
         }
-
         health = maxHealth;
-        healthBar.SetHealth(1f);
+
+        if (healthBar != null)
+            healthBar.SetHealth(1f);
 
         if (targetObject != null)
             target = targetObject.transform;
@@ -91,12 +92,21 @@ public class Wizard : Enemy
 
     void Update()
     {
-        if (target == null) return;
+        if (target == null)
+        {
+            Debug.LogWarning($"[Wizard:{name}] ❌ Target null, pas de mouvement");
+            return;
+        }
 
         float dist = Vector3.Distance(transform.position, target.position);
-
-        // Déplacement : avancer seulement si on est plus loin que stopDistance (+ epsilon)
         bool shouldRun = dist > (stopDistance + epsilon);
+
+        // ✅ Debug détaillé
+        if (Time.frameCount % 60 == 0) // Log toutes les 60 frames
+        {
+            Debug.Log($"[Wizard:{name}] dist={dist:F2}, shouldRun={shouldRun}, isStunned={isStunned}, agent. enabled={agent?.enabled}, isOnNavMesh={agent?.isOnNavMesh}");
+        }
+
         if (!isStunned)
         {
             if (agent != null && agent.enabled && agent.isOnNavMesh)
@@ -112,46 +122,38 @@ public class Wizard : Enemy
                     agent.ResetPath();
                 }
             }
+            else
+            {
+                Debug.LogWarning($"[Wizard:{name}] ❌ Agent problème:  enabled={agent?.enabled}, onNavMesh={agent?.isOnNavMesh}");
+            }
 
-            // Mettre à jour l'Animator (Run/Idle)
+            // Mettre à jour l'Animator
             if (animator != null)
                 animator.SetBool(ParamIsRunning, shouldRun);
 
-            // Attaque : tirer quand le joueur est à stopDistance ou plus proche
+            // Attaque
             bool canAttack = dist <= (stopDistance + epsilon);
 
             if (canAttack && !isAttacking)
             {
-                Debug.Log($"[Wizard:{name}] Entrée zone d'attaque (dist={dist:F2}). Démarrage AttackLoop.");
+                Debug.Log($"[Wizard:{name}] Entrée zone d'attaque (dist={dist:F2})");
                 attackCoroutine = StartCoroutine(AttackLoop());
             }
             else if (!canAttack && isAttacking)
             {
-                Debug.Log($"[Wizard:{name}] Sortie zone d'attaque (dist={dist:F2}). Arrêt AttackLoop.");
+                Debug.Log($"[Wizard:{name}] Sortie zone d'attaque (dist={dist:F2})");
                 if (attackCoroutine != null)
                     StopCoroutine(attackCoroutine);
                 attackCoroutine = null;
                 isAttacking = false;
             }
 
-            // Rotation vers le joueur (douce)
+            // Rotation
             Vector3 lookDir = target.position - transform.position;
             lookDir.y = 0f;
             if (lookDir.sqrMagnitude > 0.001f)
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 6f);
-
-            // Debug périodique
-            if (debugLogInterval > 0f)
-            {
-                debugLogTimer -= Time.deltaTime;
-                if (debugLogTimer <= 0f)
-                {
-                    Debug.Log($"[WizardStatus:{name}] pos={transform.position} dist={dist:F2} shouldRun={shouldRun} canAttack={canAttack} isAttacking={isAttacking} attackCoroutine={(attackCoroutine!=null)}");
-                    debugLogTimer = debugLogInterval;
-                }
-            }
         }
-
     }
 
     private System.Collections.IEnumerator AttackLoop()
@@ -180,40 +182,55 @@ public class Wizard : Enemy
         }
     }
 
-    // Méthode publique appelée depuis un Animation Event sur le clip d'attaque.
-    // L'Animation Event doit appeler exactement "ShootAtTarget" sur le GameObject qui contient ce script.
     public void ShootAtTarget()
     {
         Debug.Log($"[Wizard:{name}] ShootAtTarget() appelé (via Animation Event).");
         if (target == null || fireballPrefab == null)
         {
-            Debug.LogWarning($"[Wizard:{name}] Impossible de tirer : target={(target==null)}, fireballPrefab={(fireballPrefab==null)}");
+            Debug.LogWarning($"[Wizard:{name}] Impossible de tirer :  target={(target == null)}, fireballPrefab={(fireballPrefab == null)}");
             return;
         }
 
-        Vector3 spawnPos = (firePoint != null) ? firePoint.position : transform.position + transform.forward * 1f + Vector3.up * 1f;
+        // Position de spawn
+        Vector3 spawnPos = (firePoint != null) ? firePoint.position : transform.position + transform.forward * 1f + Vector3.up * 1.5f;
+
+        // Point visé
         Vector3 aimPoint = target.position + Vector3.up * 1f;
+
+        // Direction vers la cible
         Vector3 dir = (aimPoint - spawnPos).normalized;
 
-        GameObject fb = Instantiate(fireballPrefab, spawnPos, Quaternion.LookRotation(dir));
-        Fireball fbScript = fb.GetComponent<Fireball>();
-        if (fbScript != null)
+        // ✅ Instancier le projectile
+        GameObject b = Instantiate(fireballPrefab, spawnPos, Quaternion.LookRotation(dir));
+
+        // ✅ APPELER SetDirection pour que le projectile bouge ! 
+        FireBall fb = b.GetComponent<FireBall>();
+        if (fb != null)
         {
-            fbScript.Initialize(dir, projectileSpeed, projectileDamage, projectileLifetime);
+            fb.SetDirection(dir);
+            fb.damage = projectileDamage;
+            fb.speed = projectileSpeed;
+            Debug.Log($"[Wizard:{name}] ✅ FireBall configuré:  dir={dir}, speed={projectileSpeed}");
         }
         else
         {
-            var rb = fb.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.linearVelocity = dir * projectileSpeed;
-                Debug.Log($"[Wizard:{name}] Projectile fallback: applied rb.velocity.");
-            }
-            else
-            {
-                Debug.LogWarning($"[Wizard:{name}] Projectile instancié sans Rigidbody ni Fireball script.");
-            }
+            Debug.LogError($"[Wizard:{name}] ❌ Pas de script FireBall sur le prefab !");
         }
+
+        // ✅ Configurer le Rigidbody (kinematic, PAS de velocity)
+        Rigidbody rb = b.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            // ⚠️ NE PAS utiliser linearVelocity sur un kinematic !
+            // Le mouvement est géré par FireBall. Update() avec transform.position
+        }
+
+        // Détruire après projectileLifetime secondes
+        Destroy(b, projectileLifetime);
+
+        Debug.Log($"[Wizard:{name}] Projectile tiré vers {target.name}");
     }
 
     private void OnDrawGizmosSelected()
