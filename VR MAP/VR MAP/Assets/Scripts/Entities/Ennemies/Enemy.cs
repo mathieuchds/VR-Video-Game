@@ -20,7 +20,27 @@ public class Enemy : MonoBehaviour
     public EnemySpawner spawner;
 
     protected UnityEngine.AI.NavMeshAgent agent;
+    public float damagePerSecond = 1f;
+    public float duration = 3f;
 
+    public void ApplyBurn()
+    {
+        StartCoroutine(Burn());
+    }
+
+    protected IEnumerator Burn()
+    {
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            TakeDamage(damagePerSecond * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(this); // supprime l'effet
+    }
     void Start()
     {
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
