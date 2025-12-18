@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
@@ -18,13 +18,13 @@ public enum SpawnerType
 [Serializable]
 public struct WaveSetting
 {
-    [Tooltip("Nombre d'ennemis à spawn pour le slot 1 (catégorie 0) pour cette vague.")]
+    [Tooltip("Nombre d'ennemis Ã  spawn pour le slot 1 (catÃ©gorie 0) pour cette vague.")]
     public int count0;
 
-    [Tooltip("Nombre d'ennemis à spawn pour le slot 2 (catégorie 1) pour cette vague.")]
+    [Tooltip("Nombre d'ennemis Ã  spawn pour le slot 2 (catÃ©gorie 1) pour cette vague.")]
     public int count1;
 
-    [Tooltip("Nombre d'ennemis à spawn pour le slot 3 (catégorie 2) pour cette vague.")]
+    [Tooltip("Nombre d'ennemis Ã  spawn pour le slot 3 (catÃ©gorie 2) pour cette vague.")]
     public int count2;
 
     [Tooltip("Intervalle en secondes entre deux spawns pour cette vague.")]
@@ -37,7 +37,7 @@ public struct MinibossStats
     [Tooltip("Multiplicateur de HP (ex: 2.0 = 2x plus de HP)")]
     public float healthMultiplier;
 
-    [Tooltip("Multiplicateur de dégâts (ex: 1.5 = 1.5x plus de dégâts)")]
+    [Tooltip("Multiplicateur de dÃ©gÃ¢ts (ex: 1.5 = 1.5x plus de dÃ©gÃ¢ts)")]
     public float damageMultiplier;
 
     [Tooltip("Multiplicateur de taille (ex: 1.5 = 50% plus gros)")]
@@ -71,14 +71,17 @@ public class SpawnerContent : MonoBehaviour
     [SerializeField, Tooltip("Intervalle minimal entre deux spawns")]
     private float minInterval = 0.05f;
 
-    [SerializeField, Tooltip("Facteur de croissance du nombre d'ennemis par vague au-delà des réglages explicites")]
+    [SerializeField, Tooltip("Facteur de croissance du nombre d'ennemis par vague au-delÃ  des rÃ©glages explicites")]
     private float countGrowthPerExtraWave = 1.15f;
 
-    [SerializeField, Tooltip("Facteur de réduction d'intervalle par vague (plus la vague est haute, plus c'est rapide)")]
+    [SerializeField, Tooltip("Facteur de rÃ©duction d'intervalle par vague (plus la vague est haute, plus c'est rapide)")]
     private float intervalReductionPerWave = 0.05f;
 
     [Header("Events")]
     [SerializeField] private UnityEvent onWaveCompleted;
+
+    [Header("Debug")]
+    [SerializeField] private bool debugMode = false;
 
     private Coroutine spawnCoroutine;
 
@@ -91,68 +94,102 @@ public class SpawnerContent : MonoBehaviour
 
     private void Awake()
     {
-        // Rendre ce GameObject invisible (désactiver renderers et colliders)
+        // Rendre ce GameObject invisible (dÃ©sactiver renderers et colliders)
         HideSpawnerVisuals();
 
         if (mobPrefabs == null || mobPrefabs.Length != 3)
             mobPrefabs = ResizeArray(mobPrefabs, 3);
 
         if (CountNonNull(mobPrefabs) == 0)
-            Debug.LogWarning($"SpawnerContent '{name}' : aucun prefab assigné dans les 3 slots.");
+            Debug.LogWarning($"[SpawnerContent] '{name}' : aucun prefab assignÃ© dans les 3 slots.");
 
         if (waves == null || waves.Length == 0)
-            Debug.LogWarning($"SpawnerContent '{name}' : aucun WaveSetting configuré (waves).");
+            Debug.LogWarning($"[SpawnerContent] '{name}' : aucun WaveSetting configurÃ© (waves).");
     }
 
     private void Start()
     {
+        // âœ… Rechercher LevelData
         levelData = FindObjectOfType<LevelData>();
+        
         if (levelData != null)
         {
             observedLevel = levelData.level;
-            // Si le script est présent, il doit s'exécuter automatiquement pour la vague courante
             StartSpawning(observedLevel);
+            
+            if (spawnerType == SpawnerType.Miniboss && debugMode)
+                Debug.Log($"[SpawnerContent] Miniboss spawner '{name}' dÃ©marrÃ© pour vague {observedLevel}");
         }
         else
         {
-            Debug.LogWarning($"SpawnerContent '{name}' : LevelData introuvable — spawn par niveau inactif jusqu'à disponibilité.");
+            Debug.LogWarning($"[SpawnerContent] '{name}' : LevelData introuvable â€” spawn par niveau inactif.");
+        }
+    }
+
+    private void OnEnable()
+    {
+        // âœ… MODIFIÃ‰ : Toujours chercher LevelData et redÃ©marrer
+        if (spawnerType == SpawnerType.Miniboss && debugMode)
+            Debug.Log($"[SpawnerContent] Miniboss spawner '{name}' rÃ©activÃ© (OnEnable)");
+
+        // Chercher LevelData si on ne l'a pas encore
+        if (levelData == null)
+        {
+            levelData = FindObjectOfType<LevelData>();
+            
+            if (spawnerType == SpawnerType.Miniboss && debugMode)
+                Debug.Log($"[SpawnerContent] LevelData {(levelData != null ? "trouvÃ©" : "introuvable")}");
+        }
+
+        // Si on a LevelData, forcer le restart
+        if (levelData != null)
+        {
+            observedLevel = -1; // Forcer un nouveau dÃ©marrage
+            StartCoroutine(DelayedRestart());
         }
     }
 
     private void Update()
     {
+        // âœ… Chercher LevelData si on ne l'a pas
         if (levelData == null)
         {
             levelData = FindObjectOfType<LevelData>();
             if (levelData == null) return;
+            
             observedLevel = levelData.level;
-            // démarrer si on récupère LevelData après coup
             StartSpawning(observedLevel);
+            
+            if (spawnerType == SpawnerType.Miniboss && debugMode)
+                Debug.Log($"[SpawnerContent] LevelData trouvÃ© dans Update, spawn dÃ©marrÃ© pour vague {observedLevel}");
+            
             return;
         }
 
+        // DÃ©tecter changement de niveau
         if (levelData.level != observedLevel)
         {
             observedLevel = levelData.level;
             StartSpawning(observedLevel);
+            
+            if (spawnerType == SpawnerType.Miniboss && debugMode)
+                Debug.Log($"[SpawnerContent] Miniboss spawner '{name}' redÃ©marrÃ© pour nouvelle vague {observedLevel}");
         }
     }
 
     // Rendre le spawner invisible
     private void HideSpawnerVisuals()
     {
-        // Désactiver tous les renderers
         var renderers = GetComponentsInChildren<Renderer>();
         foreach (var r in renderers)
         {
             r.enabled = false;
         }
 
-        // Désactiver tous les colliders (sauf trigger si besoin)
         var colliders = GetComponentsInChildren<Collider>();
         foreach (var c in colliders)
         {
-            if (!c.isTrigger) // garder les triggers actifs si nécessaire
+            if (!c.isTrigger)
                 c.enabled = false;
         }
     }
@@ -166,9 +203,11 @@ public class SpawnerContent : MonoBehaviour
 
     public void StartSpawning(int waveNumber)
     {
-        // start spawning for given wave (will stop previous if running)
         StopSpawning();
         spawnCoroutine = StartCoroutine(SpawnWaveCoroutine(waveNumber));
+        
+        if (spawnerType == SpawnerType.Miniboss && debugMode)
+            Debug.Log($"[SpawnerContent] ðŸŽ¯ Miniboss spawner '{name}' commence spawn pour vague {waveNumber}");
     }
 
     public void StopSpawning()
@@ -180,10 +219,69 @@ public class SpawnerContent : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// âœ… Reset complet du spawner (force le restart du spawn)
+    /// </summary>
+    public void ResetSpawner()
+    {
+        if (spawnerType == SpawnerType.Miniboss && debugMode)
+            Debug.Log($"[SpawnerContent] ðŸ”„ ResetSpawner() appelÃ© sur '{name}'");
+
+        // 1. ArrÃªter tout spawn en cours
+        StopSpawning();
+
+        // 2. RÃ©initialiser le niveau observÃ© pour forcer un nouveau spawn
+        observedLevel = -1;
+
+        // 3. Chercher LevelData si nÃ©cessaire
+        if (levelData == null)
+        {
+            levelData = FindObjectOfType<LevelData>();
+            
+            if (spawnerType == SpawnerType.Miniboss && debugMode)
+                Debug.Log($"[SpawnerContent] LevelData {(levelData != null ? "trouvÃ©" : "INTROUVABLE")} lors du reset");
+        }
+
+        // 4. RedÃ©marrer avec dÃ©lai
+        StartCoroutine(DelayedRestart());
+    }
+
+    /// <summary>
+    /// âœ… RedÃ©marre le spawner aprÃ¨s une frame
+    /// </summary>
+    private IEnumerator DelayedRestart()
+    {
+        yield return null; // Attendre une frame
+        
+        // âœ… Chercher LevelData si on ne l'a toujours pas
+        if (levelData == null)
+        {
+            levelData = FindObjectOfType<LevelData>();
+        }
+        
+        if (levelData != null)
+        {
+            observedLevel = levelData.level;
+            StartSpawning(observedLevel);
+            
+            if (spawnerType == SpawnerType.Miniboss)
+            {
+                Debug.Log($"[SpawnerContent] âœ… Miniboss spawner '{name}' redÃ©marrÃ© pour vague {observedLevel}");
+            }
+        }
+        else
+        {
+            if (spawnerType == SpawnerType.Miniboss)
+                Debug.LogError($"[SpawnerContent] âŒ Miniboss spawner '{name}' ne peut pas redÃ©marrer : LevelData introuvable !");
+        }
+    }
+
     private IEnumerator SpawnWaveCoroutine(int waveNumber)
     {
         if (CountNonNull(mobPrefabs) == 0)
         {
+            if (spawnerType == SpawnerType.Miniboss)
+                Debug.LogWarning($"[SpawnerContent] Miniboss spawner '{name}' n'a aucun prefab !");
             yield break;
         }
 
@@ -220,13 +318,21 @@ public class SpawnerContent : MonoBehaviour
         {
             if (baseCounts[i] > 0 && (mobPrefabs == null || mobPrefabs.Length <= i || mobPrefabs[i] == null))
             {
-                Debug.LogWarning($"SpawnerContent '{name}': wave {waveNumber} demande {baseCounts[i]} spawns pour slot {i} mais prefab null -> annulation de ce slot.");
+                Debug.LogWarning($"[SpawnerContent] '{name}': wave {waveNumber} demande {baseCounts[i]} spawns pour slot {i} mais prefab null");
                 baseCounts[i] = 0;
             }
         }
 
         int remainingTotal = baseCounts[0] + baseCounts[1] + baseCounts[2];
-        if (remainingTotal <= 0) yield break;
+        if (remainingTotal <= 0)
+        {
+            if (spawnerType == SpawnerType.Miniboss)
+                Debug.LogWarning($"[SpawnerContent] Miniboss spawner '{name}' n'a aucun ennemi Ã  spawner pour vague {waveNumber}!");
+            yield break;
+        }
+
+        if (spawnerType == SpawnerType.Miniboss)
+            Debug.Log($"[SpawnerContent] ðŸ‘¹ Miniboss spawner '{name}' va spawner {remainingTotal} ennemi(s)");
 
         float interval = Mathf.Max(minInterval, baseInterval);
 
@@ -252,10 +358,11 @@ public class SpawnerContent : MonoBehaviour
 
             GameObject spawnedEnemy = Instantiate(prefab, spawnPos, spawnRot, null);
 
-            // Appliquer les stats de miniboss si nécessaire
+            // Appliquer les stats de miniboss si nÃ©cessaire
             if (spawnerType == SpawnerType.Miniboss)
             {
                 ApplyMinibossModifiers(spawnedEnemy);
+                Debug.Log($"[SpawnerContent] ðŸ‘¹ Miniboss '{spawnedEnemy.name}' spawnÃ© !");
             }
 
             baseCounts[choice]--;
@@ -267,6 +374,9 @@ public class SpawnerContent : MonoBehaviour
         spawnCoroutine = null;
         onWaveCompleted?.Invoke();
         WaveCompleted?.Invoke(this);
+        
+        if (spawnerType == SpawnerType.Miniboss)
+            Debug.Log($"[SpawnerContent] âœ… Miniboss spawner '{name}' terminÃ© pour vague {waveNumber}");
     }
 
     private void ApplyMinibossModifiers(GameObject enemy)
@@ -276,49 +386,33 @@ public class SpawnerContent : MonoBehaviour
         // Appliquer le multiplicateur de taille
         enemy.transform.localScale *= minibossStats.sizeMultiplier;
 
-        // Chercher et modifier le composant Enemy avec les VRAIS noms de stats
+        // Chercher et modifier le composant Enemy
         var enemyComponent = enemy.GetComponent<Enemy>();
         if (enemyComponent != null)
         {
-            // Multiplier les HP
             enemyComponent.maxHealth *= minibossStats.healthMultiplier;
-            
-            // Multiplier les dégâts
             enemyComponent.contactDamage *= minibossStats.damageMultiplier;
             
-            if (spawnerType == SpawnerType.Miniboss)
-            {
-                Debug.Log($"Miniboss spawné: HP={enemyComponent.health}, Damage={enemyComponent.contactDamage}, Size={minibossStats.sizeMultiplier}x");
-            }
+            Debug.Log($"[SpawnerContent] Miniboss modifiÃ©: HP={enemyComponent.maxHealth}, Damage={enemyComponent.contactDamage}, Size={minibossStats.sizeMultiplier}x");
         }
         else
         {
-            Debug.LogWarning($"SpawnerContent: GameObject '{enemy.name}' n'a pas de composant Enemy — impossible d'appliquer les modificateurs miniboss.");
+            Debug.LogWarning($"[SpawnerContent] GameObject '{enemy.name}' n'a pas de composant Enemy!");
         }
 
-        // Optionnel : Effet visuel pour distinguer les miniboss
         ApplyMinibossVisualEffect(enemy);
     }
 
     private void ApplyMinibossVisualEffect(GameObject enemy)
     {
-        // Ajouter un effet visuel (aura, particules, etc.)
-        // Exemple : changer la couleur pour distinguer visuellement les miniboss
         var renderers = enemy.GetComponentsInChildren<Renderer>();
         foreach (var renderer in renderers)
         {
             foreach (var mat in renderer.materials)
             {
-                // Teinte rouge/orange pour les miniboss (ajuster selon vos besoins)
                 mat.color = Color.Lerp(mat.color, new Color(1f, 0.3f, 0f), 0.4f);
             }
         }
-
-        // Vous pouvez aussi ajouter :
-        // - des particules (aura de feu, électricité, etc.)
-        // - un halo lumineux
-        // - une barre de vie spéciale
-        // - un nom/titre au-dessus (UI)
     }
 
     // Helpers
