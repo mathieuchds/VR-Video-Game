@@ -14,37 +14,37 @@ public class RiverLimit : MonoBehaviour
         Collider col = GetComponent<Collider>();
         if (col != null && !col.isTrigger)
         {
-            Debug.LogWarning($"Le Collider sur {gameObject.name} n'est pas configuré en 'Is Trigger'. Activation automatique.");
+            ////Debug.LogWarning($"Le Collider sur {gameObject.name} n'est pas configuré en 'Is Trigger'. Activation automatique.");
             col.isTrigger = true;
         }
         else if (col == null)
         {
-            Debug.LogError($"Aucun Collider trouvé sur {gameObject.name}. Ajoutez un BoxCollider ou autre.");
+            ////Debug.LogError($"Aucun Collider trouvé sur {gameObject.name}. Ajoutez un BoxCollider ou autre.");
         }
 
         // Vérifier que le GameObject parent est défini et qu'il a des enfants
         if (spawnPointsParent == null)
         {
-            Debug.LogError($"Aucun GameObject parent défini sur {gameObject.name} ! Assignez un GameObject contenant des points de spawn enfants.");
+            ////Debug.LogError($"Aucun GameObject parent défini sur {gameObject.name} ! Assignez un GameObject contenant des points de spawn enfants.");
         }
         else if (spawnPointsParent.transform.childCount == 0)
         {
-            Debug.LogError($"Le GameObject '{spawnPointsParent.name}' n'a aucun enfant ! Ajoutez des GameObjects enfants comme points de spawn.");
+            ////Debug.LogError($"Le GameObject '{spawnPointsParent.name}' n'a aucun enfant ! Ajoutez des GameObjects enfants comme points de spawn.");
         }
         else
         {
-            Debug.Log($"{spawnPointsParent.transform.childCount} point(s) de spawn trouvé(s) dans '{spawnPointsParent.name}'."); 
+            ////Debug.Log($"{spawnPointsParent.transform.childCount} point(s) de spawn trouvé(s) dans '{spawnPointsParent.name}'."); 
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"OnTriggerEnter avec {other.gameObject.name}, tag: {other.tag}");
+        ////Debug.Log($"OnTriggerEnter avec {other.gameObject.name}, tag: {other.tag}");
 
         // Si c'est un ennemi, le détruire
         if (other.CompareTag(enemyTag))
         {
-            Debug.Log($"Ennemi détecté ({other.gameObject.name}), destruction...");
+            ////Debug.Log($"Ennemi détecté ({other.gameObject.name}), destruction...");
             Destroy(other.gameObject);
             return;
         }
@@ -52,7 +52,7 @@ public class RiverLimit : MonoBehaviour
         // Si c'est le joueur ou le boss, le téléporter
         if (other.CompareTag(playerTag) || other.CompareTag(bossTag))
         {
-            Debug.Log($"Joueur ou Boss détecté ({other.gameObject.name}), recherche du point de spawn le plus proche...");
+            ////Debug.Log($"Joueur ou Boss détecté ({other.gameObject.name}), recherche du point de spawn le plus proche...");
             TeleportToClosestSpawn(other);
         }
     }
@@ -61,7 +61,7 @@ public class RiverLimit : MonoBehaviour
     {
         if (spawnPointsParent == null || spawnPointsParent.transform.childCount == 0)
         {
-            Debug.LogError("Impossible de téléporter : aucun point de spawn défini !");
+            ////Debug.LogError("Impossible de téléporter : aucun point de spawn défini !");
             return;
         }
 
@@ -77,7 +77,7 @@ public class RiverLimit : MonoBehaviour
             
             if (controller != null)
             {
-                Debug.Log($"CharacterController trouvé sur {controller.gameObject.name}");
+                ////Debug.Log($"CharacterController trouvé sur {controller.gameObject.name}");
                 
                 // IMPORTANT : Désactiver le CharacterController avant la téléportation
                 controller.enabled = false;
@@ -88,12 +88,12 @@ public class RiverLimit : MonoBehaviour
                 // Réactiver le CharacterController
                 controller.enabled = true;
                 
-                Debug.Log($"Téléportation effectuée. Nouvelle position : {controller.transform.position}");
+                ////Debug.Log($"Téléportation effectuée. Nouvelle position : {controller.transform.position}");
             }
             else
             {
                 // Fallback : téléporter directement le transform si pas de CharacterController
-                Debug.LogWarning($"Aucun CharacterController trouvé, téléportation de {target.transform.root.name}");
+                ////Debug.LogWarning($"Aucun CharacterController trouvé, téléportation de {target.transform.root.name}");
                 target.transform.root.position = respawnPosition;
             }
             
@@ -103,12 +103,12 @@ public class RiverLimit : MonoBehaviour
             {
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
-                Debug.Log("Vitesse du Rigidbody réinitialisée.");
+                ////Debug.Log("Vitesse du Rigidbody réinitialisée.");
             }
         }
         else
         {
-            Debug.LogError("Aucun point de spawn valide trouvé !");
+            ////Debug.LogError("Aucun point de spawn valide trouvé !");
         }
     }
 
@@ -121,7 +121,7 @@ public class RiverLimit : MonoBehaviour
         foreach (Transform spawnPoint in spawnPointsParent.transform)
         {
             float distance = Vector3.Distance(position, spawnPoint.position);
-            Debug.Log($"Point de spawn '{spawnPoint.name}' : distance = {distance:F2}m");
+            //Debug.Log($"Point de spawn '{spawnPoint.name}' : distance = {distance:F2}m");
 
             if (distance < minDistance)
             {
@@ -132,7 +132,7 @@ public class RiverLimit : MonoBehaviour
 
         if (closest != null)
         {
-            Debug.Log($"Point de spawn le plus proche : '{closest.name}' à {minDistance:F2}m");
+            //Debug.Log($"Point de spawn le plus proche : '{closest.name}' à {minDistance:F2}m");
         }
 
         return closest;

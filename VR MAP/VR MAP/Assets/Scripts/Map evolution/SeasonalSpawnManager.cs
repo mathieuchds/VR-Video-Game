@@ -1,4 +1,5 @@
-using System;
+Ôªøusing System;
+using System.Collections; // ‚úÖ AJOUT√â : N√©cessaire pour IEnumerator
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,39 +7,39 @@ using UnityEngine.SceneManagement;
 
 public class SeasonalSpawnManager : MonoBehaviour
 {
-    [Header("Prefabs (glisser-dÈposer)")]
+    [Header("Prefabs (glisser-d√©poser)")]
     public List<GameObject> halloweenPrefabs = new List<GameObject>();
     public List<GameObject> winterPrefabs = new List<GameObject>();
 
     [Header("Spawner prefabs (invisibles, contiennent SpawnerContent)")]
-    [Tooltip("Prefab contenant SpawnerContent pour marqueurs Halloween (sera instanciÈ invisible).")]
+    [Tooltip("Prefab contenant SpawnerContent pour marqueurs Halloween (sera instanci√© invisible).")]
     [SerializeField] private GameObject spawnerPrefabHalloween = null;
-    [Tooltip("Prefab contenant SpawnerContent pour marqueurs Winter (sera instanciÈ invisible).")]
+    [Tooltip("Prefab contenant SpawnerContent pour marqueurs Winter (sera instanci√© invisible).")]
     [SerializeField] private GameObject spawnerPrefabWinter = null;
 
     [Header("Marqueurs")]
-    [Tooltip("Si vrai, on recherche les marqueurs par tag plutÙt que par nom.")]
+    [Tooltip("Si vrai, on recherche les marqueurs par tag plut√¥t que par nom.")]
     [SerializeField] private bool useMarkerTag = false;
     [Tooltip("Tag des marqueurs Halloween (si useMarkerTag = true).")]
     [SerializeField] private string markerTagHalloween = "SpawnHalloween";
     [Tooltip("Tag des marqueurs Winter (si useMarkerTag = true).")]
     [SerializeField] private string markerTagWinter = "SpawnWinter";
 
-    [Header("Placement au sol (utilisÈ pour le snap)")]
+    [Header("Placement au sol (utilis√© pour le snap)")]
     [Tooltip("Objet parent contenant les colliders du sol (optionnel).")]
     [SerializeField] private GameObject groundRoot = null;
-    [Tooltip("LayerMask utilisÈ en fallback pour dÈtecter le sol.")]
+    [Tooltip("LayerMask utilis√© en fallback pour d√©tecter le sol.")]
     [SerializeField] private LayerMask groundMask = ~0;
-    [Tooltip("Hauteur maximale de dÈpart pour les raycasts vers le bas (m).")]
+    [Tooltip("Hauteur maximale de d√©part pour les raycasts vers le bas (m).")]
     [SerializeField] private float maxRayHeight = 50f;
-    [Tooltip("Offset vertical final appliquÈ aprËs snap (m).")]
+    [Tooltip("Offset vertical final appliqu√© apr√®s snap (m).")]
     [SerializeField] private float groundSnapOffset = 0f;
 
     [Header("Debug")]
-    [Tooltip("Active logs dÈtaillÈs pour diagnostiquer les spawns.")]
+    [Tooltip("Active logs d√©taill√©s pour diagnostiquer les spawns.")]
     [SerializeField] private bool debugMode = false;
 
-    // clÈ PlayerPrefs par scËne
+    // cl√© PlayerPrefs par sc√®ne
     private string prefsKey => $"SeasonalSpawn_Activated_{SceneManager.GetActiveScene().name}";
 
     // saved entries format: prefix|hierPath|x,y,z|prefabName
@@ -51,7 +52,7 @@ public class SeasonalSpawnManager : MonoBehaviour
     {
         LoadActivatedKeys();
 
-        // rendre invisibles tous les marqueurs prÈsents (ne pas les dÈtruire)
+        // rendre invisibles tous les marqueurs pr√©sents (ne pas les d√©truire)
         var allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>();
         foreach (var t in allTransforms)
         {
@@ -62,10 +63,10 @@ public class SeasonalSpawnManager : MonoBehaviour
             }
         }
 
-        // restaurer les spawns dÈj‡ activÈs (persistÈs)
+        // restaurer les spawns d√©j√† activ√©s (persist√©s)
         RestoreActivatedMarkers();
 
-        // Debug: lister les marqueurs prÈsents dans la scËne
+        // Debug: lister les marqueurs pr√©sents dans la sc√®ne
         DebugListMarkers();
     }
 
@@ -74,7 +75,7 @@ public class SeasonalSpawnManager : MonoBehaviour
         levelData = FindObjectOfType<LevelData>();
         if (levelData == null)
         {
-            Debug.LogWarning("[SeasonalSpawnManager] LevelData introuvable ó aucun spawn progressif.");
+            Debug.LogWarning("[SeasonalSpawnManager] LevelData introuvable ‚Äî aucun spawn progressif.");
             return;
         }
 
@@ -181,14 +182,14 @@ public class SeasonalSpawnManager : MonoBehaviour
     }
 
     // activation : replace marker by instantiated object (inspired by RockSpawn)
-    // -> instancie le visuel + un spawner invisible (selon saison) contenant SpawnerContent initialisÈ
+    // -> instancie le visuel + un spawner invisible (selon saison) contenant SpawnerContent initialis√©
     private void ActivateRandomMarkers(List<Transform> candidates, int numberToActivate, List<GameObject> prefabPool, string categoryPrefix)
     {
         if (numberToActivate <= 0) return;
         if (candidates == null || candidates.Count == 0) return;
         if (prefabPool == null || prefabPool.Count == 0)
         {
-            Debug.LogWarning($"[SeasonalSpawnManager] Aucun prefab dans le pool pour la catÈgorie {categoryPrefix}. Activation ignorÈe.");
+            Debug.LogWarning($"[SeasonalSpawnManager] Aucun prefab dans le pool pour la cat√©gorie {categoryPrefix}. Activation ignor√©e.");
             return;
         }
 
@@ -272,9 +273,9 @@ public class SeasonalSpawnManager : MonoBehaviour
             }
 
             ShowObjectVisuals(newObj);
-
+             
             // --- Instantiate the invisible spawner prefab (child of visible) ---
-            // Le spawner prefab contient dÈj‡ SpawnerContent avec mobPrefabs[] configurÈs dans l'inspector
+            // Le spawner prefab contient d√©j√† SpawnerContent avec mobPrefabs[] configur√©s dans l'inspector
             GameObject spawnerPrefab = categoryPrefix == "H" ? spawnerPrefabHalloween : spawnerPrefabWinter;
             if (spawnerPrefab != null)
             {
@@ -288,26 +289,26 @@ public class SeasonalSpawnManager : MonoBehaviour
                     // ensure invisible visuals only (renderers/colliders disabled)
                     HideMarkerVisuals(spawnerInstance);
 
-                    // Le SpawnerContent est dÈj‡ sur le prefab avec ses mobPrefabs[] configurÈs
-                    // -> PAS besoin d'appeler Initialize() ó on vÈrifie juste qu'il est prÈsent
+                    // Le SpawnerContent est d√©j√† sur le prefab avec ses mobPrefabs[] configur√©s
+                    // -> PAS besoin d'appeler Initialize() ‚Äî on v√©rifie juste qu'il est pr√©sent
                     var spComp = spawnerInstance.GetComponent<SpawnerContent>();
                     if (spComp == null)
                     {
-                        Debug.LogWarning($"[SeasonalSpawnManager] Prefab spawner '{spawnerPrefab.name}' ne contient pas de SpawnerContent ó ajout automatique (mais mobPrefabs vides).");
+                        Debug.LogWarning($"[SeasonalSpawnManager] Prefab spawner '{spawnerPrefab.name}' ne contient pas de SpawnerContent ‚Äî ajout automatique (mais mobPrefabs vides).");
                         spComp = spawnerInstance.AddComponent<SpawnerContent>();
                     }
 
                     if (debugMode) 
-                        Debug.Log($"[SeasonalSpawnManager] Spawner '{spawnerInstance.name}' instanciÈ ó SpawnerContent utilise ses propres mobPrefabs (configurÈs dans prefab).");
+                        Debug.Log($"[SeasonalSpawnManager] Spawner '{spawnerInstance.name}' instanci√© ‚Äî SpawnerContent utilise ses propres mobPrefabs (configur√©s dans prefab).");
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"[SeasonalSpawnManager] Erreur en crÈant spawner inner pour '{newObj.name}': {ex.Message}");
+                    Debug.LogWarning($"[SeasonalSpawnManager] Erreur en cr√©ant spawner inner pour '{newObj.name}': {ex.Message}");
                 }
             }
             else
             {
-                if (debugMode) Debug.Log($"[SeasonalSpawnManager] Aucun spawnerPrefab dÈfini pour la saison {categoryPrefix}.");
+                if (debugMode) Debug.Log($"[SeasonalSpawnManager] Aucun spawnerPrefab d√©fini pour la saison {categoryPrefix}.");
             }
 
             // add marker component on the new object (same approach as RockSpawn)
@@ -325,7 +326,7 @@ public class SeasonalSpawnManager : MonoBehaviour
         }
     }
 
-    // Choisit jusqu'‡ 3 prefabs distincts dans la pool (retourne array length 3, null si manque)
+    // Choisit jusqu'√† 3 prefabs distincts dans la pool (retourne array length 3, null si manque)
     private GameObject[] ChooseThreePrefabs(List<GameObject> pool)
     {
         var result = new GameObject[3];
@@ -468,7 +469,7 @@ public class SeasonalSpawnManager : MonoBehaviour
         return false;
     }
 
-    // nouvelle mÈthode : obtient RaycastHit (point + normale) sous une position, prioritÈ groundRoot -> groundMask -> Terrain
+    // nouvelle m√©thode : obtient RaycastHit (point + normale) sous une position, priorit√© groundRoot -> groundMask -> Terrain
     private bool TryGetGroundHitUnderPosition(Vector3 position, out RaycastHit hit)
     {
         hit = default;
@@ -531,8 +532,8 @@ public class SeasonalSpawnManager : MonoBehaviour
                 var marker = FindTransformByHierarchyPath(path);
                 if (marker == null)
                 {
-                    if (debugMode) Debug.LogWarning($"[SeasonalSpawnManager] Marker not found for saved path: {path} ó removing saved entry");
-                    activatedKeys.Remove(saved); // nettoie l'entrÈe obsolËte
+                    if (debugMode) Debug.LogWarning($"[SeasonalSpawnManager] Marker not found for saved path: {path} ‚Äî removing saved entry");
+                    activatedKeys.Remove(saved); // nettoie l'entr√©e obsol√®te
                     removedAny = true;
                     continue;
                 }
@@ -614,7 +615,7 @@ public class SeasonalSpawnManager : MonoBehaviour
         }
     }
 
-    // recherche d'un Transform par chemin hiÈrarchique (stable)
+    // recherche d'un Transform par chemin hi√©rarchique (stable)
     private Transform FindTransformByHierarchyPath(string path)
     {
         if (string.IsNullOrEmpty(path)) return null;
@@ -659,10 +660,77 @@ public class SeasonalSpawnManager : MonoBehaviour
     {
         activatedKeys.Clear();
         PlayerPrefs.DeleteKey(prefsKey);
-        Debug.Log("[SeasonalSpawnManager] DonnÈes sauvegardÈes effacÈes.");
+        Debug.Log("[SeasonalSpawnManager] Donn√©es sauvegard√©es effac√©es.");
     }
 
-    // appelez ceci depuis Awake() pour tracer ce qui existe dans la scËne
+    /// <summary>
+    /// ‚úÖ Reset complet du syst√®me de spawn (spawners saisonniers + miniboss)
+    /// </summary>
+    public void ResetSpawns()
+    {
+        if (debugMode) Debug.Log("[SeasonalSpawnManager] === RESET COMPLET DES SPAWNS ===");
+
+        // 1. Effacer les donn√©es sauvegard√©es dans PlayerPrefs
+        activatedKeys.Clear();
+        PlayerPrefs.DeleteKey(prefsKey);
+        PlayerPrefs.Save();
+
+        // 2. D√©truire tous les objets spawn√©s saisonniers (visuels + spawners)
+        var spawnedObjects = FindObjectsOfType<SpawnedSeasonal>();
+        int seasonalCount = 0;
+        foreach (var spawned in spawnedObjects)
+        {
+            if (spawned != null && spawned.gameObject != null)
+            {
+                Destroy(spawned.gameObject);
+                seasonalCount++;
+            }
+        }
+
+        // 3. ‚úÖ MODIFI√â : Reset des miniboss via coroutine (attendre que LevelData soit √† jour)
+        StartCoroutine(ResetMinibossSpawnersDelayed());
+
+        // 4. R√©initialiser le tracker de niveau
+        lastLevel = -1; // Forcer UpdateSpawnsByLevel √† se relancer
+
+        if (debugMode) 
+            Debug.Log($"[SeasonalSpawnManager] ‚úÖ Reset termin√© : {seasonalCount} objets d√©truits, miniboss en cours de reset...");
+    }
+
+    /// <summary>
+    /// ‚úÖ NOUVEAU : Reset les spawners de miniboss apr√®s un d√©lai (pour que LevelData soit pr√™t)
+    /// </summary>
+    private IEnumerator ResetMinibossSpawnersDelayed()
+    {
+        // Attendre une frame pour que LevelData soit √† jour
+        yield return null;
+
+        int resetCount = 0;
+
+        // Trouver tous les SpawnerContent de type Miniboss dans la sc√®ne
+        SpawnerContent[] allSpawners = FindObjectsOfType<SpawnerContent>();
+        
+        foreach (var spawner in allSpawners)
+        {
+            if (spawner == null)
+                continue;
+
+            // V√©rifier si c'est un spawner de miniboss
+            if (spawner.Type == SpawnerType.Miniboss)
+            {
+                spawner.ResetSpawner();
+                resetCount++;
+                
+                if (debugMode)
+                    Debug.Log($"[SeasonalSpawnManager] üîÑ Miniboss spawner r√©initialis√© : {spawner.gameObject.name}");
+            }
+        }
+
+        if (debugMode)
+            Debug.Log($"[SeasonalSpawnManager] ‚úÖ {resetCount} spawner(s) de miniboss r√©initialis√©s");
+    }
+
+    // appelez ceci depuis Awake() pour tracer ce qui existe dans la sc√®ne
     private void DebugListMarkers()
     {
         var allTransforms = UnityEngine.Object.FindObjectsOfType<Transform>();
@@ -685,8 +753,8 @@ public class SeasonalSpawnManager : MonoBehaviour
     }
 }
 
-// helper extension for safe CompareTag (avoids exceptions if tag not defined)
-static class TransformExtensions
+// Extension helper pour CompareTag sans exception
+public static class TransformExtensions
 {
     public static bool CompareTagSafe(this Transform t, string tag)
     {

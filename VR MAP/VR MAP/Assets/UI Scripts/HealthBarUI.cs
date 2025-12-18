@@ -8,8 +8,8 @@ public class HealthBarUI : MonoBehaviour
 
     private void Start()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        stats = player.GetComponent<PlayerStats>();
+        /*GameObject player = GameObject.FindGameObjectWithTag("Player");
+        stats = player.GetComponent<PlayerStats>();*/
 
         stats.currentHealth = stats.maxHealth;
         fillImage = GameObject.Find("HealthBar_Fill").GetComponent<Image>();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 [System.Serializable]
@@ -40,16 +40,73 @@ public class PlayerStats : MonoBehaviour
 
     public event Action HealthUpdate;
 
+    private GameStateManager gameStateManager;
+    private bool isDead = false; // ✅ NOUVEAU : Empêcher de mourir plusieurs fois
+
+    private void Start()
+    {
+        gameStateManager = FindObjectOfType<GameStateManager>();
+        
+        if (gameStateManager == null)
+        {
+            Debug.LogError("[PlayerStats] GameStateManager introuvable ! Le Game Over ne pourra pas se déclencher.");
+        }
+
+        // ✅ Réinitialiser au démarrage
+        ResetStats();
+    }
+
+    // ✅ NOUVEAU : Méthode pour réinitialiser les stats
+    public void ResetStats()
+    {
+        currentHealth = maxHealth;
+        isDead = false;
+        HealthUpdate?.Invoke();
+        
+        Debug.Log($"[PlayerStats] ✅ Stats réinitialisées : {currentHealth}/{maxHealth} HP");
+    }
+
     public void TakeDamage(float amount)
     {
+        // ✅ Ne pas prendre de dégâts si déjà mort
+        if (isDead)
+            return;
+
         float finalDamage = Mathf.Max(amount - defense, 0f);
         currentHealth -= finalDamage;
+        
+        currentHealth = Mathf.Max(currentHealth, 0f);
+        
         HealthUpdate?.Invoke();
+
+        if (currentHealth <= 0f && !isDead)
+        {
+            OnPlayerDeath();
+        }
     }
 
     public void Heal(float amount)
     {
+        if (isDead)
+            return;
+
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
         HealthUpdate?.Invoke();
+    }
+
+    private void OnPlayerDeath()
+    {
+        isDead = true; // ✅ Empêcher de mourir plusieurs fois
+        
+        Debug.Log("[PlayerStats] 💀 JOUEUR MORT ! Déclenchement du Game Over...");
+
+        if (gameStateManager != null)
+        {
+            gameStateManager.TriggerGameOver(false);
+        }
+        else
+        {
+            Debug.LogError("[PlayerStats] Impossible de déclencher le Game Over : GameStateManager introuvable !");
+        }
     }
 }
