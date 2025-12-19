@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -42,16 +43,33 @@ public class PlayerController : MonoBehaviour
     private bool speedBoostEnable = false;
     private bool shockwaveEnable = false;
     private bool bombaEnable = false;
+    private bool flameThrowerEnable = false;
+    private bool poisonBulletEnable = false;
+    private bool iceRayEnable = false;
+
+
 
 
     [Header("Cooldowns")]
     [SerializeField] private float stunCooldown = 8f;
     [SerializeField] private float speedBoostCooldown = 5f;
     [SerializeField] private float bombaCooldown = 10f;
+    [SerializeField] private float flameThrowerCooldown = 10f;
+    [SerializeField] private float iceRayCooldown = 10f;
+
+
+    [SerializeField] private float flameThrowerDuration= 5f;
+    [SerializeField] private float iceRayDuration = 5f;
+
+
+
 
     private float stunTimer = 0f;
     private float speedBoostTimer = 0f;
     private float bombaTimer = 0f;
+    private float flameThrowerTimer = 0f;
+    private float iceRayTimer = 0f;
+
 
     private AbilitySlotUI a1;
     private AbilitySlotUI a2;
@@ -155,9 +173,43 @@ public class PlayerController : MonoBehaviour
                 stats.explosionDamage += 15f;
                 stats.explosionRadius += 1f;
             }
-        }else if(powerName == "PoisonBullet")
+        }
+        else if (powerName == "FlameThrower")
         {
-
+            if (!flameThrowerEnable)
+            {
+                gun.AddModule("gun_module_fire");
+                flameThrowerEnable = true;
+                a4.Unlock();
+            }
+            else
+            {
+                flameThrowerDuration += 2;
+            }
+        }
+        else if (powerName == "PoisonBullets")
+        {
+            if (!poisonBulletEnable)
+            {
+                gun.AddModule("gun_module_poison");
+                gun.PoisonBulletsEnable();
+            }
+            else
+            {
+                stats.poisonDamage += 3f;
+                stats.poisonDuration += 1f;
+            }
+        }else if(powerName == "IceRay")
+        {
+            if (!iceRayEnable)
+            {
+                gun.AddModule("gun_module_laser");
+                iceRayEnable = true;
+            }
+            else
+            {
+                stats.iceDuration += 1f;
+            }
         }
 
     }
@@ -179,19 +231,58 @@ public class PlayerController : MonoBehaviour
         {
             ThrowBomba();
             bombaTimer = bombaCooldown;
-        }
-        else if (control.name == "x")
+        }else if(flameThrowerEnable && control.name == "4" && flameThrowerTimer <= 0f)
+        {
+            FlameThrower();
+            flameThrowerTimer = flameThrowerCooldown;
+        }else if (control.name == "x")
         {
             PowerSelectionManager psm = FindObjectOfType<PowerSelectionManager>();
             if (psm != null)
             {
                 psm.ShowPowerSelection();
             }
-
         }
+
+        
 
 
     }
+
+    public void IceRay()
+    {
+        StartCoroutine(IceRayRoutine());
+    }
+
+    private IEnumerator IceRayRoutine()
+    {
+        gun.IceRayEnable();
+
+        yield return new WaitForSeconds(iceRayDuration);
+
+        gun.IceRayDisable();
+
+        yield return new WaitForSeconds(iceRayCooldown);
+    }
+
+    public void FlameThrower()
+    {
+        StartCoroutine(FlameRoutine());
+    }
+
+    private IEnumerator FlameRoutine()
+    {
+        gun.FlameThrowerEnable();
+
+        yield return new WaitForSeconds(flameThrowerDuration);
+
+        gun.FlameThrowerDisable();
+
+        yield return new WaitForSeconds(flameThrowerCooldown);
+    }
+
+
+
 
     private void ThrowBomba()
     {
@@ -222,7 +313,7 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    private System.Collections.IEnumerator SpeedBoostRoutine()
+    private IEnumerator SpeedBoostRoutine()
     {
 
         float baseSpeed = stats.moveSpeed;
@@ -318,6 +409,22 @@ public class PlayerController : MonoBehaviour
             a3.UpdateCooldown(bombaTimer, bombaCooldown);
         }
 
+        if(flameThrowerTimer > 0)
+        {
+            flameThrowerTimer -= Time.deltaTime;
+            a4.UpdateCooldown(flameThrowerTimer, flameThrowerCooldown);
+        }
+
+        if(iceRayTimer > 0)
+        {
+            iceRayTimer -= Time.deltaTime;
+        }
+
+        if (iceRayEnable && iceRayTimer <= 0f)
+        {
+            IceRay();
+            iceRayTimer = iceRayCooldown;
+        }
 
     }
 

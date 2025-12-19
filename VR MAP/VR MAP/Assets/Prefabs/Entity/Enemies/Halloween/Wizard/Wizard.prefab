@@ -666,7 +666,7 @@ GameObject:
   - component: {fileID: 7927934931609092530}
   m_Layer: 0
   m_Name: Wizard
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -687,7 +687,6 @@ Transform:
   - {fileID: 4358465402289130}
   - {fileID: 4668634257833992}
   - {fileID: 3151212380994172591}
-
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &95538263452871118
@@ -733,6 +732,7 @@ MonoBehaviour:
   isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
+  flameEffectPrefab: {fileID: 197962, guid: c1f1c6a173fc5a34aae675702b69445a, type: 3}
   targetObject: {fileID: 0}
   firePoint: {fileID: 2604185741585999606}
   fireballPrefab: {fileID: 7606620699271223679, guid: edb64c83a00dab64592255c2df41fbe3, type: 3}

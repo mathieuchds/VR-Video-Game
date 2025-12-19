@@ -20,27 +20,16 @@ public class Enemy : MonoBehaviour
     public EnemySpawner spawner;
 
     protected UnityEngine.AI.NavMeshAgent agent;
-    public float damagePerSecond = 1f;
-    public float duration = 3f;
+    protected float flameDamagePerSecond = 1f;
+    protected float flameDuration = 3f;
 
-    public void ApplyBurn()
-    {
-        StartCoroutine(Burn());
-    }
+    protected float poisonDamagePerSecond = 1f;
+    protected float poisonDuration = 3f;
 
-    protected IEnumerator Burn()
-    {
-        float elapsed = 0f;
+    [SerializeField] protected GameObject flameEffectPrefab;
+    private GameObject currentFlame;
 
-        while (elapsed < duration)
-        {
-            TakeDamage(damagePerSecond * Time.deltaTime);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
 
-        Destroy(this); // supprime l'effet
-    }
     void Start()
     {
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
@@ -60,6 +49,13 @@ public class Enemy : MonoBehaviour
         health = maxHealth;
         healthBar.SetHealth(1f);
 
+        PlayerStats ps = GameObject.Find("Player").GetComponent<PlayerStats>();
+        flameDamagePerSecond = ps.flameDamagePerSecond;
+        flameDuration = ps.flameDuration;
+
+        poisonDamagePerSecond = ps.poisonDamage;
+        poisonDuration = ps.poisonDuration;
+
         rend = GetComponent<Renderer>();
         if (rend != null) baseColor = rend.material.color;
     }
@@ -74,6 +70,58 @@ public class Enemy : MonoBehaviour
                 rend.material.color = baseColor;
         }
     }
+
+    public void ApplyBurn()
+    {
+        if (currentFlame != null)
+            return; 
+
+        currentFlame = Instantiate(
+            flameEffectPrefab,
+            transform.position,
+            Quaternion.identity,
+            transform 
+        );
+
+        StartCoroutine(Burn());
+    }
+
+    protected IEnumerator Burn()
+    {
+        float elapsed = 0f;
+
+        while (elapsed < flameDuration)
+        {
+            TakeDamage(flameDamagePerSecond * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(currentFlame);
+        currentFlame = null;
+    }
+
+
+    public void ApplyPoison(){ 
+        StartCoroutine(Poison());
+    }
+
+    protected IEnumerator Poison()
+    {
+        float elapsed = 0f;
+
+        while (elapsed < poisonDuration)
+        {
+            TakeDamage(poisonDamagePerSecond * Time.deltaTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        currentFlame = null;
+    }
+
+
+
 
     public void Knockback(Vector3 direction, float force, float duration)
     {
@@ -138,6 +186,7 @@ public class Enemy : MonoBehaviour
         if (health <= 0f)
         {
             if (spawner != null) spawner.EnemyDied();
+            QuestManager.Instance?.AddProgress(QuestObjectiveType.KillEnemy, 1);
             Destroy(gameObject);
         }
     }

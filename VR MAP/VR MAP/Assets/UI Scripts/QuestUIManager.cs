@@ -7,7 +7,7 @@ public class QuestUIManager : MonoBehaviour
     public TMP_Text descriptionText;
     public TMP_Text progressText;
 
-    public void UpdateQuest(string title, string description, int current, int target)
+    public void UpdateQuest(string title, string description, float current, float target)
     {
         titleText.text = title;
         descriptionText.text = description;

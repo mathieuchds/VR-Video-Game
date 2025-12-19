@@ -37,6 +37,17 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] public float explosionRadius = 3f;
     [SerializeField] public float explosionDamage = 20f;
 
+    [Header("FlameThrower")]
+    [SerializeField] public float flameDamagePerSecond = 4f;
+    [SerializeField] public float flameDuration = 2f;
+
+    [Header("PoisonBullets")]
+    [SerializeField] public float poisonDamage = 10f;
+    [SerializeField] public float poisonDuration = 3f;
+
+    [Header("IceRay")]
+    [SerializeField] public float iceDuration = 2f;
+
 
     public event Action HealthUpdate;
 

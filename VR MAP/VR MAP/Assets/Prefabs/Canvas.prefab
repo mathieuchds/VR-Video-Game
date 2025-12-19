@@ -1028,7 +1028,6 @@ GameObject:
   - component: {fileID: 7406551599023825305}
   - component: {fileID: 6776357481307253878}
   - component: {fileID: 3233555747445079994}
-  - component: {fileID: 8812673494132680314}
   m_Layer: 5
   m_Name: QuestUI
   m_TagString: Untagged
@@ -1072,19 +1071,6 @@ MonoBehaviour:
   descriptionText: {fileID: 6365061427485935095}
   progressText: {fileID: 3661893177825033121}
 --- !u!114 &3233555747445079994
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3881185383845345258}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8cbdb5a5026033499ac72fd2b2fe78c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  questUI: {fileID: 6776357481307253878}
---- !u!114 &8812673494132680314
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

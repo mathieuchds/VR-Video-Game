@@ -92,6 +92,7 @@ public class Wizard : Enemy
 
     void Update()
     {
+
         if (target == null)
         {
             Debug.LogWarning($"[Wizard:{name}] ❌ Target null, pas de mouvement");

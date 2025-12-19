@@ -159,9 +159,12 @@ MonoBehaviour:
   maxHealth: 100
   health: 50
   contactDamage: 10
+  speed: 3
   flashTime: 0.1
+  isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
+  flameEffectPrefab: {fileID: 197962, guid: c1f1c6a173fc5a34aae675702b69445a, type: 3}
 --- !u!114 &1280235155571017600
 MonoBehaviour:
   m_ObjectHideFlags: 0

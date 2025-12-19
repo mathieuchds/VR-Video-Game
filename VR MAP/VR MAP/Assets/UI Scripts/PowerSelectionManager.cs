@@ -18,7 +18,10 @@ public class PowerSelectionManager : MonoBehaviour
         "Stun",
         "SpeedBoost",
         "Shockwave",
-        "Bomba"
+        "Bomba",
+        "FlameThrower",
+        "PoisonBullets",
+        "IceRay"
     };
 
 
