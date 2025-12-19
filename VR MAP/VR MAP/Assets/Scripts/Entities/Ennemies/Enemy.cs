@@ -49,7 +49,7 @@ public class Enemy : MonoBehaviour
         health = maxHealth;
         healthBar.SetHealth(1f);
 
-        PlayerStats ps = GameObject.Find("Player").GetComponent<PlayerStats>();
+        PlayerStats ps = GameObject.FindObjectOfType<PlayerStats>(true);
         flameDamagePerSecond = ps.flameDamagePerSecond;
         flameDuration = ps.flameDuration;
 

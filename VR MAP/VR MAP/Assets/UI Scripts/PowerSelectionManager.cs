@@ -25,11 +25,11 @@ public class PowerSelectionManager : MonoBehaviour
     };
 
 
-    void Start()
+    void Awake()
     {
         panel = GameObject.Find("PowerSelectionPanel");
         panel.SetActive(false);
-        player = FindObjectOfType<PlayerController>();
+        player = FindObjectOfType<PlayerController>(true);
     }
 
     public void ShowPowerSelection()

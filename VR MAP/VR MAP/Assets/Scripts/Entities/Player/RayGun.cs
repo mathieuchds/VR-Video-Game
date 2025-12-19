@@ -27,7 +27,7 @@ public class Gun : MonoBehaviour
         // Raycast physique
         if (Physics.Raycast(origin, direction, out RaycastHit hit, range))
         {
-            Debug.Log("Touché : " + hit.transform.name);
+            //Debug.Log("Touché : " + hit.transform.name);
 
             Enemy enemy = hit.transform.GetComponent<Enemy>();
             if (enemy != null)
