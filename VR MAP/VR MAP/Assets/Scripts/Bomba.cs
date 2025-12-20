@@ -9,7 +9,7 @@ public class Bomba : MonoBehaviour
 
     void Start()
     {
-        stats = GetComponent<PlayerStats>();
+        stats=GameObject.FindObjectOfType<PlayerStats>(true);
         explosionDamage = stats.explosionDamage;
         explosionRadius = stats.explosionRadius;
 

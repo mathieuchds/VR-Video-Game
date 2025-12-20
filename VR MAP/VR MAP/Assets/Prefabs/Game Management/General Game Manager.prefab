@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6128817689398707325}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 290, y: -275.8, z: -763}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -45,9 +45,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 0
-  menuCanvas: {fileID: 7220900833045268381, guid: 3dc05815abd9b9546a27875828f96dce, type: 3}
-  gameCanvas: {fileID: 6382419062403604228, guid: 0ea8b97ff1f012248957da4e32d63b5d, type: 3}
-  gameOverWinCanvas: {fileID: 2423729492283527984, guid: 0ac266447da2ff54db88eea70dc611b9, type: 3}
-  gameOverLoseCanvas: {fileID: 3355667044437340455, guid: 0c38837067cabb44c8edea22b5418bd3, type: 3}
-  gameObjectToActivate: {fileID: 7281560823030315171, guid: 0487e7df487e32a43ba6f9d5aba24f36, type: 3}
+  menuCanvas: {fileID: 0}
+  gameCanvas: {fileID: 0}
+  powerUpCanvas: {fileID: 0}
+  gameOverWinCanvas: {fileID: 0}
+  gameOverLoseCanvas: {fileID: 0}
+  sceneManager: {fileID: 0}
+  powerUpManager: {fileID: 0}
+  player: {fileID: 0}
+  menuCamera: {fileID: 0}
+  playerCamera: {fileID: 0}
   levelData: {fileID: 0}
+  playerSpawnPoint: {fileID: 0}
+  defaultSpawnPosition: {x: -8, y: 4, z: 0}
+  enableDebugLogs: 0

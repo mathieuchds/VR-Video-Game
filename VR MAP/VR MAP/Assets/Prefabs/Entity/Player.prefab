@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 971835206326383921}
   - component: {fileID: 5119464151642589359}
   - component: {fileID: 7344115945408758343}
-  m_Layer: 7
+  m_Layer: 1
   m_Name: FlameHitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -371,7 +371,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2275475919901063716
 Transform:
   m_ObjectHideFlags: 0
@@ -479,6 +479,7 @@ MonoBehaviour:
   iceRayCooldown: 10
   flameThrowerDuration: 5
   iceRayDuration: 5
+  shockwavePrefab: {fileID: 4234688818759935946, guid: ccc4b677d86eb024da65acaf0f6565b2, type: 3}
 --- !u!1 &5440878504710388761
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,7 +703,7 @@ GameObject:
   - component: {fileID: 3881391200518332365}
   - component: {fileID: 1690950508177208266}
   - component: {fileID: 7704969864214016355}
-  m_Layer: 7
+  m_Layer: 1
   m_Name: laser_beam
   m_TagString: Untagged
   m_Icon: {fileID: 0}

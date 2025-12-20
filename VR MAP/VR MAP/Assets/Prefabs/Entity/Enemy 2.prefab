@@ -232,7 +232,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -303,9 +303,12 @@ MonoBehaviour:
   maxHealth: 100
   health: 50
   contactDamage: 10
+  speed: 3
   flashTime: 0.1
+  isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
+  flameEffectPrefab: {fileID: 0}
 --- !u!114 &1280235155571017600
 MonoBehaviour:
   m_ObjectHideFlags: 0

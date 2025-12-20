@@ -9,9 +9,12 @@ public class PowerSelectionManager : MonoBehaviour
     public GameObject panel;
     public Button[] powerButtons;
     public TMP_Text[] powerTexts;
+    public TMP_Text[] descriptionTexts;
 
 
     public PlayerController player;
+
+    private bool canSelect = false;
 
     private List<string> allPowerUps = new List<string>()
     {
@@ -23,6 +26,18 @@ public class PowerSelectionManager : MonoBehaviour
         "PoisonBullets",
         "IceRay"
     };
+
+    List<string> powerDescriptions = new List<string>()
+{
+    "Étourdit les ennemis proches",
+    "Augmente temporairement la vitesse",
+    "Onde de choc lors du saut",
+    "Lance une bombe repoussant les enemis",
+    "Lance-flammes continu",
+    "Dégâts sur la durée",
+    "Ralentit les ennemis"
+};
+
 
 
     void Awake()
@@ -45,14 +60,25 @@ public class PowerSelectionManager : MonoBehaviour
         {
             string power = randomPowers[i];
             powerTexts[i].text = power;
+            descriptionTexts[i].text = powerDescriptions[allPowerUps.IndexOf(power)];
 
             powerButtons[i].onClick.RemoveAllListeners();
             powerButtons[i].onClick.AddListener(() => SelectPower(power));
         }
+        StartCoroutine(EnableSelectionAfterDelay());
+
     }
+
+    System.Collections.IEnumerator EnableSelectionAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(0.25f);
+        canSelect = true;
+    }
+
 
     void SelectPower(string power)
     {
+        if (!canSelect) return;
         player.ApplyPowerUp(power);
 
         panel.SetActive(false);
@@ -60,6 +86,7 @@ public class PowerSelectionManager : MonoBehaviour
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        canSelect = false;
     }
 
     List<string> GetRandomPowers(int count)

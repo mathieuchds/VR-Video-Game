@@ -7,19 +7,28 @@ public class AbilitySlotUI : MonoBehaviour
     [Header("UI (optionnel)")]
     public Image icon;              
     public TMP_Text cooldownText;
+    public Image powerLock;
+
 
     [Header("State")]
     public bool isUnlocked = false;
 
+    public void Awake()
+    {
+        Lock();
+    }
+
     public void Unlock()
     {
         isUnlocked = true;
-        cooldownText.text = "R";
+        cooldownText.text = "";
         if (icon != null)
         {
-            icon.color = Color.red;
-            icon.fillAmount = 0f;
+            icon.color = Color.white;
+            icon.fillAmount = 1f;
         }
+        powerLock.enabled = false;
+
     }
 
     public void Lock()
@@ -31,13 +40,13 @@ public class AbilitySlotUI : MonoBehaviour
             icon.color = Color.gray;
             icon.fillAmount = 1f;
         }
+        powerLock.enabled = true;
     }
 
     public void UpdateCooldown(float remaining, float max)
     {
         if (!isUnlocked)
         {
-            cooldownText.text = "L";
             return;
         }
 
@@ -46,14 +55,18 @@ public class AbilitySlotUI : MonoBehaviour
             cooldownText.text = remaining.ToString("F1") + "s";
 
             if (icon != null)
-                icon.fillAmount = remaining / max;
+                icon.fillAmount = 1f-(remaining / max);
         }
         else
         {
-            cooldownText.text = "R";
-
+            cooldownText.text = "";
             if (icon != null)
-                icon.fillAmount = 0f;
+            {
+                icon.fillAmount = 1f;
+                icon.color = Color.white;
+            }
+                
+            
         }
     }
 }

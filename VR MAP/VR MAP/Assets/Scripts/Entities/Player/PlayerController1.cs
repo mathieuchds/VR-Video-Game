@@ -77,6 +77,10 @@ public class PlayerController : MonoBehaviour
     private AbilitySlotUI a4;
 
 
+    [Header("VFX")]
+    [SerializeField] private ShockwaveVFX shockwavePrefab;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -329,6 +333,18 @@ public class PlayerController : MonoBehaviour
 
     private void DoShockwave()
     {
+        //VFX
+        if (shockwavePrefab != null)
+        {
+            ShockwaveVFX vfx = Instantiate(
+                shockwavePrefab,
+                new Vector3(transform.position.x, transform.position.y + 0.05f, transform.position.z),
+                Quaternion.Euler(90, 0, 0)
+            );
+
+            vfx.Play(stats.shockwaveRadius);
+        }
+
         Collider[] hits = Physics.OverlapSphere(transform.position, stats.shockwaveRadius);
 
         foreach (Collider hit in hits)

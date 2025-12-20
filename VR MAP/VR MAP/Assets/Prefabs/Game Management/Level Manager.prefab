@@ -49,6 +49,11 @@ MonoBehaviour:
   seasonalSpawnManager: {fileID: 0}
   spawnerPrefabHalloween: {fileID: 3998186714802536193, guid: f080dc77339d6464f92cb0dd49387951, type: 3}
   spawnerPrefabWinter: {fileID: 2064881547654939525, guid: 5b54e72f569c95d4f87d5c0c72154bb4, type: 3}
+  spawnerPrefabHalloweenMiniboss: {fileID: 0}
+  spawnerPrefabWinterMiniboss: {fileID: 0}
+  useMarkerTag: 0
+  markerTagHalloween: SpawnHalloween
+  markerTagWinter: SpawnWinter
   enemyTag: Enemy
   maxWave: 10
   checkDelay: 2

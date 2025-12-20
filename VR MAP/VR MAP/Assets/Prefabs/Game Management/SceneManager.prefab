@@ -97,7 +97,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7281560823030315171}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a2211d8d1e940c4aa8bc82702d74684, type: 3}
   m_Name: 
@@ -247,4 +247,4 @@ MonoBehaviour:
     m_Bits: 4294967295
   maxRayHeight: 50
   groundSnapOffset: 0
-  debugMode: 1
+  debugMode: 0

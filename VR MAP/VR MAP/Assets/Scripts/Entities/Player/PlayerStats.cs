@@ -52,7 +52,7 @@ public class PlayerStats : MonoBehaviour
     public event Action HealthUpdate;
 
     private GameStateManager gameStateManager;
-    private bool isDead = false; // ✅ NOUVEAU : Empêcher de mourir plusieurs fois
+    private bool isDead = false; 
 
     private void Awake()
     {
@@ -106,7 +106,7 @@ public class PlayerStats : MonoBehaviour
 
     private void OnPlayerDeath()
     {
-        isDead = true; // ✅ Empêcher de mourir plusieurs fois
+        isDead = true; 
         
         Debug.Log("[PlayerStats] 💀 JOUEUR MORT ! Déclenchement du Game Over...");
 

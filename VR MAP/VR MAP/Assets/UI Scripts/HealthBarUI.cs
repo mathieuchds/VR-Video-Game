@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class HealthBarUI : MonoBehaviour
 {
     public PlayerStats stats;
     public Image fillImage;
+    public TMP_Text textAmount;
 
     private void Start()
     {
@@ -13,6 +15,8 @@ public class HealthBarUI : MonoBehaviour
 
         stats.currentHealth = stats.maxHealth;
         fillImage = GameObject.Find("HealthBar_Fill").GetComponent<Image>();
+        textAmount = GameObject.Find("HealthAmount").GetComponent<TMP_Text>();
+
 
         stats.HealthUpdate += UpdateHealthUI;
         UpdateHealthUI();
@@ -23,6 +27,7 @@ public class HealthBarUI : MonoBehaviour
         if (stats != null)
         {
             fillImage.fillAmount = stats.currentHealth / stats.maxHealth;
+            textAmount.text = $"{stats.currentHealth} / {stats.maxHealth}";
         }
     }
 

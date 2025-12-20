@@ -361,7 +361,7 @@ public class SpawnerContent : MonoBehaviour
             // Appliquer les stats de miniboss si nécessaire
             if (spawnerType == SpawnerType.Miniboss)
             {
-                ApplyMinibossModifiers(spawnedEnemy);
+                //ApplyMinibossModifiers(spawnedEnemy);
                 Debug.Log($"[SpawnerContent] 👹 Miniboss '{spawnedEnemy.name}' spawné !");
             }
 

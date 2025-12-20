@@ -100,9 +100,9 @@ public class QuestManager : MonoBehaviour
     {
         StartQuest(
             "Nettoyage",
-            "Tuer 5 ennemis",
+            "Tuer 25 ennemis",
             QuestObjectiveType.KillEnemy,
-            5
+            25
         );
     }
 
@@ -110,7 +110,7 @@ public class QuestManager : MonoBehaviour
     {
         StartQuest(
             "Déplacement",
-            "Atteindre la zone dorée",
+            "Atteindre 1 zone dorée",
             QuestObjectiveType.ReachZone,
             1
         );
@@ -122,9 +122,9 @@ public class QuestManager : MonoBehaviour
     {
         StartQuest(
             "Entraînement",
-            "Tirer 10 balles",
+            "Tirer 50 balles",
             QuestObjectiveType.ShootBullets,
-            10
+            50
         );
     }
 
