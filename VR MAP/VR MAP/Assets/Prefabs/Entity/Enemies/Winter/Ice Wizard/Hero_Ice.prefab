@@ -1216,7 +1216,7 @@ GameObject:
   - component: {fileID: 10468548456734053}
   m_Layer: 0
   m_Name: Hero_Ice
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1281,7 +1281,7 @@ MonoBehaviour:
   isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
-  flameEffectPrefab: {fileID: 8644861730782453898, guid: 2a571bdb507a7f04b91387f88d0f957f, type: 3}
+  flameEffectPrefab: {fileID: 197962, guid: c1f1c6a173fc5a34aae675702b69445a, type: 3}
   targetObject: {fileID: 0}
   firePoint: {fileID: 4970659621282731764}
   animator: {fileID: 930657114159246376}

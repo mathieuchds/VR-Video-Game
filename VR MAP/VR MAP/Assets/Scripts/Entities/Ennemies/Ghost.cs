@@ -10,7 +10,7 @@ public class Ghost : Enemy
     private Transform target;
 
     [Header("Paramètres de Mouvement")]
-    [SerializeField] private float moveSpeed = 3f; // Lerp speed vers la position orbitale
+    // Utilise maintenant `speed` hérité de `Enemy` (public) pour éviter plusieurs sources de vérité
     [SerializeField] private float floatHeight = 1.5f;
     [SerializeField] private float floatAmplitude = 0.3f;
     [SerializeField] private float floatFrequency = 1f;
@@ -173,7 +173,33 @@ public class Ghost : Enemy
 
     void Update()
     {
-        if (target == null) return;
+        // si on n'a pas encore de target, tenter de la trouver chaque frame (utile si le joueur spawn après les fantômes)
+        if (target == null)
+        {
+            var playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO != null && playerGO.activeInHierarchy)
+            {
+                target = playerGO.transform;
+                if (debugShowImpactRect) Debug.Log($"[Ghost:{name}] Player trouvé tardivement par tag : {target.name}");
+            }
+            else
+            {
+                var pc = FindObjectOfType<PlayerController>();
+                if (pc != null && pc.gameObject.activeInHierarchy)
+                {
+                    target = pc.transform;
+                    if (debugShowImpactRect) Debug.Log($"[Ghost:{name}] Player trouvé tardivement par PlayerController : {target.name}");
+                }
+                else if (targetObject != null && targetObject.activeInHierarchy)
+                {
+                    target = targetObject.transform;
+                    if (debugShowImpactRect) Debug.Log($"[Ghost:{name}] Player pris depuis targetObject tardivement : {target.name}");
+                }
+            }
+
+            if (target == null)
+                return; // on attend la prochaine frame
+        }
 
         float dir = orbitClockwise ? -1f : 1f;
         orbitAngle += dir * orbitSpeed * Time.deltaTime;
@@ -197,8 +223,8 @@ public class Ghost : Enemy
             desiredPos = new Vector3(horizontalDesired.x, desiredPos.y, horizontalDesired.z);
         }
 
-        // interpolation, clamp pour stabiliser
-        transform.position = Vector3.Lerp(transform.position, desiredPos, Mathf.Clamp01(moveSpeed * Time.deltaTime));
+        // interpolation, clamp pour stabiliser — utilise `speed` hérité d'Enemy
+        transform.position = Vector3.Lerp(transform.position, desiredPos, Mathf.Clamp01(speed * Time.deltaTime));
 
         transform.LookAt(new Vector3(target.position.x, transform.position.y, target.position.z));
 
@@ -304,7 +330,7 @@ public class Ghost : Enemy
             }
         }
 
-        // fallback: legacy OverlapSphere scan (applique aussi RAW damageAmount constant using XZ distance)
+        // fallback: legacy OverlapSphere scan (keeps previous behaviour for non-target players)
         Collider[] hitColliders = Physics.OverlapSphere(center, damageRadius);
         if (debugShowImpactRect)
         {

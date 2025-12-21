@@ -725,10 +725,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthBar: {fileID: 5961521127890546871}
-  maxHealth: 100
+  maxHealth: 150
   health: 0
-  contactDamage: 10
-  speed: 3
+  contactDamage: 0
+  speed: 1
   flashTime: 0.1
   isStunned: 0
   rb: {fileID: 0}
@@ -742,7 +742,7 @@ MonoBehaviour:
   attackCooldown: 2
   attackDelayAfterTrigger: 0.15
   projectileSpeed: 8
-  projectileDamage: 15
+  projectileDamage: 8
   projectileLifetime: 6
   debugLogInterval: 2
 --- !u!136 &136306802490482818

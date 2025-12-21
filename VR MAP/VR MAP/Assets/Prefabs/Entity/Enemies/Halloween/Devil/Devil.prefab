@@ -2129,7 +2129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthBar: {fileID: 5447531733573054149}
-  maxHealth: 100
+  maxHealth: 150
   health: 0
   contactDamage: 10
   speed: 3
@@ -2137,8 +2137,7 @@ MonoBehaviour:
   isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
-  damagePerSecond: 1
-  duration: 3
+  flameEffectPrefab: {fileID: 197962, guid: c1f1c6a173fc5a34aae675702b69445a, type: 3}
   targetObject: {fileID: 0}
   animator: {fileID: 0}
   outerCircleRadius: 15

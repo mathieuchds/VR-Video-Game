@@ -210,26 +210,14 @@ public class GameStateManager : MonoBehaviour
         }
         else
         {
-            // Désactiver dans l'ordre inverse : Player → Power Up Manager → Scene Manager
-            LogDebug("[GameStateManager] Désactivation des GameObjects...");
+            if (menuCamera != null)
+                menuCamera.enabled = true;
 
-            if (player != null)
-            {
-                player.SetActive(false);
-                LogDebug($"[GameStateManager] ✗ Joueur désactivé: {player.name}");
-            }
+            UpdateCameraState();
 
-            if (powerUpManager != null)
-            {
-                powerUpManager.SetActive(false);
-                LogDebug($"[GameStateManager] ✗ Power Up Manager désactivé: {powerUpManager.name}");
-            }
-
-            if (sceneManager != null)
-            {
-                sceneManager.SetActive(false);
-                LogDebug($"[GameStateManager] ✗ Scene Manager désactivé: {sceneManager.name}");
-            }
+            if (player != null) player.SetActive(false);
+            if (powerUpManager != null) powerUpManager.SetActive(false);
+            if (sceneManager != null) sceneManager.SetActive(false);
         }
     }
 
@@ -248,8 +236,6 @@ public class GameStateManager : MonoBehaviour
         // 2. Détruire tous les ennemis restants
         CleanupEnemies();
 
-        // 3. Reset complet des spawners (ils liront levelData.level = 1)
-        ResetSpawners();
 
         // 4. Changer d'état (active le Scene Manager)
         SetState(GameState.Game);
@@ -300,9 +286,6 @@ public class GameStateManager : MonoBehaviour
 
         // 2. Détruire tous les ennemis restants
         CleanupEnemies();
-
-        // 3. Reset complet des spawners
-        ResetSpawners();
 
         // 4. Changer d'état (active le Scene Manager)
         SetState(GameState.Game);

@@ -199,7 +199,7 @@ GameObject:
   - component: {fileID: 3892060949049276922}
   m_Layer: 0
   m_Name: Ghost
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -322,25 +322,25 @@ MonoBehaviour:
   healthBar: {fileID: 6123161405864940003}
   maxHealth: 200
   health: 0
-  contactDamage: 10
-  speed: 1.5
+  contactDamage: 1
+  speed: 0.3
   flashTime: 0.1
   isStunned: 0
   rb: {fileID: 0}
   spawner: {fileID: 0}
   flameEffectPrefab: {fileID: 8149814289637279443, guid: 0be142930fb141848b6a57277d63ddfc, type: 3}
   targetObject: {fileID: 0}
-  moveSpeed: 1
+  moveSpeed: 0.3
   floatHeight: 0.5
   floatAmplitude: 0.3
   floatFrequency: 1
-  orbitRadius: 6
-  orbitSpeed: 2
+  orbitRadius: 4.5
+  orbitSpeed: 0.3
   orbitClockwise: 1
   minSeparation: 1
-  damageRadius: 6
-  damageAmount: 2
-  damageInterval: 1
+  damageRadius: 5
+  damageAmount: 1
+  damageInterval: 1.5
   verticalTolerance: 1.2
   damageZoneColor: {r: 0.6132076, g: 0, b: 0.36348614, a: 1}
   lightIntensity: 3
