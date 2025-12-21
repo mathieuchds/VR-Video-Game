@@ -11,7 +11,7 @@ public class QuestUIManager : MonoBehaviour
     {
         titleText.text = title;
         descriptionText.text = description;
-        progressText.text = $"Progression : {current} / {target}";
+        progressText.text = $"Progress : {current} / {target}";
     }
 
     public void HideQuest()
