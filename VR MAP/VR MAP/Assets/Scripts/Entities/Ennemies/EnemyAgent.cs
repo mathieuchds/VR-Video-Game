@@ -37,13 +37,20 @@ public class FollowPlayer : MonoBehaviour
         }
     }
 
+
     void Update()
     {
-        // Vérifications avant d'appeler SetDestination
-        if (target != null && agent != null && agent.enabled && agent.isOnNavMesh)
+        if (target == null)
         {
-            agent.SetDestination(target.position);
+            GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO != null)
+                target = playerGO.transform;
+            else
+                return;
         }
+
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
+            agent.SetDestination(target.position);
     }
 
     /// <summary>
