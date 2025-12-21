@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
@@ -72,6 +73,82 @@ public class CursorPrefabManager : MonoBehaviour
     {
         EnsureInstance();
 
+        // Si le parentCanvas assigné est null ou désactivé, reparenter vers le Canvas actif le plus haut
+        Canvas desired = parentCanvas;
+        if (desired == null || !desired.gameObject.activeInHierarchy)
+        {
+            desired = FindTopMostActiveCanvas();
+            if (desired != null)
+                parentCanvas = desired; // mettre à jour la référence pour prochaines fois
+        }
+
+        if (instance != null)
+        {
+            // reparenter si nécessaire
+            if (desired != null)    
+                instance.transform.SetParent(desired.transform, false);
+            else
+                instance.transform.SetParent(null, false);
+
+            // actualiser rect transform référence
+            instanceRect = instance.GetComponent<RectTransform>();
+
+            // ASSURANCE D'ÉCHELLE : forcer scale = 1 après reparent
+            if (instanceRect != null)
+            {
+                instanceRect.localScale = Vector3.one;
+                instanceRect.SetAsLastSibling();
+            }
+            else
+            {
+                instance.transform.localScale = Vector3.one;
+            }
+
+            // Synchroniser le Canvas de l'instance avec le Canvas parent si on force le Canvas
+            if (forceCursorCanvas)
+            {
+                var instCanvas = instance.GetComponent<Canvas>();
+                Canvas parentC = desired;
+                if (instCanvas == null)
+                    instCanvas = instance.AddComponent<Canvas>();
+
+                instCanvas.overrideSorting = true;
+                instCanvas.sortingOrder = cursorSortingOrder;
+
+                if (parentC != null)
+                {
+                    // aligner renderMode / camera / scaleFactor pour éviter différences d'échelle
+                    instCanvas.renderMode = parentC.renderMode;
+                    if (parentC.renderMode != RenderMode.ScreenSpaceOverlay)
+                        instCanvas.worldCamera = parentC.worldCamera;
+                    try
+                    {
+                        instCanvas.scaleFactor = parentC.scaleFactor;
+                    }
+                    catch
+                    {
+                        // Certaines versions peuvent bloquer l'écriture : ignore silencieusement
+                    }
+
+                    // Si un CanvasScaler existe sur l'instance, forcer ConstantPixelSize pour stabilité
+                    var cs = instance.GetComponent<CanvasScaler>();
+                    if (cs == null)
+                        cs = instance.AddComponent<CanvasScaler>();
+
+                    if (cs != null)
+                    {
+                        cs.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+                        cs.referencePixelsPerUnit = 100f;
+                    }
+                }
+                else
+                {
+                    // Pas de parentCanvas : set overlay by default
+                    instCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                }
+            }
+        }
+
         if (!instance.activeSelf)
             instance.SetActive(true);
 
@@ -122,20 +199,29 @@ public class CursorPrefabManager : MonoBehaviour
         StopAnimation();
     }
 
+    // Permet à un gestionnaire externe (ex : GameStateManager) de forcer/reporter le Canvas parent
+    public void SetParentCanvas(Canvas canvas)
+    {
+        parentCanvas = canvas;
+        if (instance != null && parentCanvas != null)
+        {
+            instance.transform.SetParent(parentCanvas.transform, false);
+            instanceRect = instance.GetComponent<RectTransform>();
+            if (instanceRect != null) instanceRect.localScale = Vector3.one;
+        }
+    }
+
     // Initialise l'instance si nécessaire (factorise la logique d'instanciation)
     private void EnsureInstance()
     {
         if (cursorPrefab == null) return;
         if (instance != null) return;
 
-        if (parentCanvas != null)
-        {
+        // Instancier d'abord sous le canvas choisi si possible (sinon null parent)
+        if (parentCanvas != null && parentCanvas.gameObject.activeInHierarchy)
             instance = Instantiate(cursorPrefab, parentCanvas.transform, false);
-        }
         else
-        {
             instance = Instantiate(cursorPrefab);
-        }
 
         instanceRect = instance.GetComponent<RectTransform>();
         instanceAnimator = instance.GetComponent<Animator>();
@@ -194,6 +280,10 @@ public class CursorPrefabManager : MonoBehaviour
             if (instance.GetComponent<GraphicRaycaster>() == null)
                 instance.AddComponent<GraphicRaycaster>();
         }
+
+        // s'assurer que l'Animator (si présent) commence désactivé
+        if (instanceAnimator != null)
+            instanceAnimator.enabled = false;
     }
 
     private void PlayAnimation()
@@ -309,5 +399,20 @@ public class CursorPrefabManager : MonoBehaviour
         // restaurer au cas où
         if (cursorReplaced)
             RestoreSystemCursor();
+    }
+
+    // Trouve le Canvas actif (activeInHierarchy et enabled) ayant le plus grand sortingOrder.
+    private Canvas FindTopMostActiveCanvas()
+    {
+        var canvases = FindObjectsOfType<Canvas>().Where(c => c.gameObject.activeInHierarchy && c.enabled).ToArray();
+        if (canvases == null || canvases.Length == 0) return null;
+
+        // préférer ScreenSpaceOverlay s'il y en a
+        var overlay = canvases.Where(c => c.renderMode == RenderMode.ScreenSpaceOverlay).ToArray();
+        if (overlay.Length > 0)
+            canvases = overlay;
+
+        Canvas top = canvases.OrderByDescending(c => c.sortingOrder).FirstOrDefault();
+        return top;
     }
 }

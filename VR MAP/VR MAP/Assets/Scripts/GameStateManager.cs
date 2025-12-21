@@ -563,6 +563,8 @@ public class GameStateManager : MonoBehaviour
 
     /// <summary>
     /// Gère l'état du curseur selon le mode de jeu
+    /// - Affiche le prefab de curseur UI (CursorPrefabManager) en Menu et GameOver.
+    /// - Masque le prefab et verrouille le curseur en Game.
     /// </summary>
     private void UpdateCursorState()
     {
@@ -573,6 +575,15 @@ public class GameStateManager : MonoBehaviour
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 LogDebug("[GameStateManager] 🖱️ Curseur DÉVERROUILLÉ (Menu)");
+
+                // show prefab cursor attached to menu canvas if available
+                if (CursorPrefabManager.Instance != null)
+                {
+                    Canvas menuC = menuCanvas != null ? menuCanvas.GetComponent<Canvas>() : null;
+                    if (menuC != null)
+                        CursorPrefabManager.Instance.SetParentCanvas(menuC);
+                    CursorPrefabManager.Instance.Show();
+                }
                 break;
 
             case GameState.Game:
@@ -580,6 +591,12 @@ public class GameStateManager : MonoBehaviour
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
                 LogDebug("[GameStateManager] 🖱️ Curseur VERROUILLÉ (Game)");
+
+                // hide prefab cursor
+                if (CursorPrefabManager.Instance != null)
+                {
+                    CursorPrefabManager.Instance.Hide();
+                }
                 break;
 
             case GameState.GameOver:
@@ -587,6 +604,16 @@ public class GameStateManager : MonoBehaviour
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 LogDebug("[GameStateManager] 🖱️ Curseur DÉVERROUILLÉ (GameOver)");
+
+                // show prefab cursor attached to the active gameover canvas
+                if (CursorPrefabManager.Instance != null)
+                {
+                    GameObject goCanvasObj = hasWon ? gameOverWinCanvas : gameOverLoseCanvas;
+                    Canvas goCanvas = goCanvasObj != null ? goCanvasObj.GetComponent<Canvas>() : null;
+                    if (goCanvas != null)
+                        CursorPrefabManager.Instance.SetParentCanvas(goCanvas);
+                    CursorPrefabManager.Instance.Show();
+                }
                 break;
         }
     }

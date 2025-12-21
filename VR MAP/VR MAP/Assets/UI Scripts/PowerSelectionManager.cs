@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -28,17 +27,15 @@ public class PowerSelectionManager : MonoBehaviour
     };
 
     List<string> powerDescriptions = new List<string>()
-{
-    "Étourdit les ennemis proches",
-    "Augmente temporairement la vitesse",
-    "Onde de choc lors du saut",
-    "Lance une bombe repoussant les enemis",
-    "Lance-flammes continu",
-    "Dégâts sur la durée",
-    "Ralentit les ennemis"
-};
-
-
+    {
+        "Stuns nearby enemies.",
+        "Temporarily increases movement speed.",
+        "Creates a shockwave on jump that damages and pushes enemies.",
+        "Throws a bomb that knocks back and damages enemies.",
+        "Continuous flamethrower that deals sustained damage.",
+        "Bullets that poison targets, dealing damage over time.",
+        "Fires an ice ray that slows enemies."
+    };
 
     void Awake()
     {
