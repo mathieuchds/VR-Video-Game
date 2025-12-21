@@ -1,19 +1,19 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 [System.Serializable]
 public class PlayerStats : MonoBehaviour
 {
-
     [Header("Stats")]
-    [SerializeField]  public float maxHealth = 100f;
-    [SerializeField]  public float currentHealth = 100f;
+    [SerializeField] public float maxHealth = 100f;
+    [SerializeField] public float currentHealth = 100f;
 
-    [SerializeField]  public int attackDamage = 50;
-    [SerializeField]  public float attackSpeed = 1.5f;
+    [SerializeField] public int attackDamage = 50;
+    [SerializeField] public float attackSpeed = 1.5f;
 
-    [SerializeField]  public int defense = 5;
-    [SerializeField]  public float moveSpeed = 1f;
+    [SerializeField] public int defense = 5;
+    [SerializeField] public float moveSpeed = 1f;
 
     //[SerializeField] public int mana = 50;
     //[SerializeField] public int maxMana = 50;
@@ -54,6 +54,11 @@ public class PlayerStats : MonoBehaviour
     private GameStateManager gameStateManager;
     private bool isDead = false; 
 
+    // --- Slow state (non stacking) ---
+    private bool isSlowed = false;
+    private Coroutine slowCoroutine = null;
+    private float originalMoveSpeed = -1f;
+
     private void Awake()
     {
         gameStateManager = FindObjectOfType<GameStateManager>();
@@ -62,6 +67,9 @@ public class PlayerStats : MonoBehaviour
         {
             Debug.LogError("[PlayerStats] GameStateManager introuvable ! Le Game Over ne pourra pas se déclencher.");
         }
+
+        // store original base move speed for safe restore
+        originalMoveSpeed = moveSpeed;
 
         ResetStats();
     }
@@ -72,7 +80,16 @@ public class PlayerStats : MonoBehaviour
         currentHealth = maxHealth;
         isDead = false;
         HealthUpdate?.Invoke();
-        
+
+        // restore base move speed and cancel slow if any
+        if (slowCoroutine != null)
+        {
+            StopCoroutine(slowCoroutine);
+            slowCoroutine = null;
+        }
+        isSlowed = false;
+        moveSpeed = originalMoveSpeed;
+
         Debug.Log($"[PlayerStats] ✅ Stats réinitialisées : {currentHealth}/{maxHealth} HP");
     }
 
@@ -82,12 +99,39 @@ public class PlayerStats : MonoBehaviour
         if (isDead)
             return;
 
+        // calcule damage effectif en tenant compte de la défense
         float finalDamage = Mathf.Max(amount - defense, 0f);
+
+        // debug log pour vérifier les appels (utile pour ton problème)
+        Debug.Log($"[PlayerStats] TakeDamage called: amount={amount:F2}, defense={defense}, finalDamage={finalDamage:F2}, healthBefore={currentHealth:F2}");
+
         currentHealth -= finalDamage;
         
         currentHealth = Mathf.Max(currentHealth, 0f);
         
         HealthUpdate?.Invoke();
+
+        Debug.Log($"[PlayerStats] Health after damage: {currentHealth:F2}/{maxHealth:F2}");
+
+        if (currentHealth <= 0f && !isDead)
+        {
+            OnPlayerDeath();
+        }
+    }
+
+    // NOUVEAU : Appliquer des dégâts "bruts" sans soustraire la défense
+    public void ApplyRawDamage(float amount)
+    {
+        if (isDead) return;
+
+        Debug.Log($"[PlayerStats] ApplyRawDamage called: amount={amount:F2}, healthBefore={currentHealth:F2}");
+
+        currentHealth -= amount;
+        currentHealth = Mathf.Max(currentHealth, 0f);
+
+        HealthUpdate?.Invoke();
+
+        Debug.Log($"[PlayerStats] Health after raw damage: {currentHealth:F2}/{maxHealth:F2}");
 
         if (currentHealth <= 0f && !isDead)
         {
@@ -118,5 +162,35 @@ public class PlayerStats : MonoBehaviour
         {
             Debug.LogError("[PlayerStats] Impossible de déclencher le Game Over : GameStateManager introuvable !");
         }
+    }
+
+    // Public API: apply a slow that does NOT stack. If already slowed, the call is ignored.
+    public void ApplySlow(float factor, float duration)
+    {
+        if (isSlowed)
+            return;
+
+        // ensure we have a sensible base value to restore later
+        if (originalMoveSpeed <= 0f)
+            originalMoveSpeed = moveSpeed;
+
+        // apply slow immediately
+        moveSpeed = originalMoveSpeed * factor;
+        isSlowed = true;
+
+        // start restore coroutine on this component (safe because this GameObject is the player)
+        if (slowCoroutine != null)
+            StopCoroutine(slowCoroutine);
+        slowCoroutine = StartCoroutine(RestoreSlowRoutine(originalMoveSpeed, duration));
+    }
+
+    private IEnumerator RestoreSlowRoutine(float baseSpeed, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        // restore only if not dead (but restore even if dead is harmless)
+        moveSpeed = baseSpeed;
+        isSlowed = false;
+        slowCoroutine = null;
     }
 }

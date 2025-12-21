@@ -1981,9 +1981,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthBar: {fileID: 8713825877662735269}
-  maxHealth: 100
+  maxHealth: 400
   health: 0
-  contactDamage: 10
+  contactDamage: 5
   speed: 3
   flashTime: 0.1
   isStunned: 0

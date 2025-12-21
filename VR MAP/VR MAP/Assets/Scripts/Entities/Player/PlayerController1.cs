@@ -1,12 +1,10 @@
-
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("Camera")] [SerializeField] private Camera cam;
+    [Header("Camera")][SerializeField] private Camera cam;
     [Header("Movement")]
     [SerializeField] private float camSensitivity = 20;
     [SerializeField] private float moveSensitivity = 3;
@@ -20,7 +18,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputActionReference mouseMovement;
     [SerializeField] private InputActionReference fire;
     [SerializeField] private InputActionReference jump;
-    
+
     [Header("GroundCheck")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask groundCheckMask;
@@ -29,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GunShooter gun;
 
 
-    [SerializeField]  public PlayerStats stats;
+    [SerializeField] public PlayerStats stats;
 
 
     private CharacterController controller;
@@ -47,9 +45,6 @@ public class PlayerController : MonoBehaviour
     private bool poisonBulletEnable = false;
     private bool iceRayEnable = false;
 
-
-
-
     [Header("Cooldowns")]
     [SerializeField] private float stunCooldown = 8f;
     [SerializeField] private float speedBoostCooldown = 5f;
@@ -57,12 +52,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float flameThrowerCooldown = 10f;
     [SerializeField] private float iceRayCooldown = 10f;
 
-
-    [SerializeField] private float flameThrowerDuration= 5f;
+    [SerializeField] private float flameThrowerDuration = 5f;
     [SerializeField] private float iceRayDuration = 5f;
-
-
-
 
     private float stunTimer = 0f;
     private float speedBoostTimer = 0f;
@@ -70,16 +61,17 @@ public class PlayerController : MonoBehaviour
     private float flameThrowerTimer = 0f;
     private float iceRayTimer = 0f;
 
-
     private AbilitySlotUI a1;
     private AbilitySlotUI a2;
     private AbilitySlotUI a3;
     private AbilitySlotUI a4;
 
-
     [Header("VFX")]
     [SerializeField] private ShockwaveVFX shockwavePrefab;
 
+    // Slow state
+    private bool isSlowed = false;
+    private Coroutine slowCoroutine = null;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -112,7 +104,6 @@ public class PlayerController : MonoBehaviour
             jump.action.Enable();
         }
 
-
         if (fire)
         {
             fire.action.performed += FirePressed;
@@ -139,7 +130,6 @@ public class PlayerController : MonoBehaviour
         }
         else if (powerName == "SpeedBoost")
         {
-
             if (!speedBoostEnable)
             {
                 speedBoostEnable = true;
@@ -150,7 +140,6 @@ public class PlayerController : MonoBehaviour
                 stats.speedBoostMultiplier += 0.5f;
                 stats.speedBoostDuration += 1f;
             }
-
         }
         else if (powerName == "Shockwave")
         {
@@ -203,7 +192,8 @@ public class PlayerController : MonoBehaviour
                 stats.poisonDamage += 3f;
                 stats.poisonDuration += 1f;
             }
-        }else if(powerName == "IceRay")
+        }
+        else if (powerName == "IceRay")
         {
             if (!iceRayEnable)
             {
@@ -215,31 +205,33 @@ public class PlayerController : MonoBehaviour
                 stats.iceDuration += 1f;
             }
         }
-
     }
 
     private void PowerUpPressed(InputAction.CallbackContext obj)
     {
         var control = obj.control;
 
-        if (stunEnable && control.name == "1" && stunTimer<=0f)
+        if (stunEnable && control.name == "1" && stunTimer <= 0f)
         {
             StunAround();
             stunTimer = stunCooldown;
         }
-        else if (speedBoostEnable && control.name == "2" && speedBoostTimer<=0f)
+        else if (speedBoostEnable && control.name == "2" && speedBoostTimer <= 0f)
         {
             SpeedBoost();
             speedBoostTimer = speedBoostCooldown;
-        }else if (bombaEnable && control.name == "3" && bombaTimer<=0f)
+        }
+        else if (bombaEnable && control.name == "3" && bombaTimer <= 0f)
         {
             ThrowBomba();
             bombaTimer = bombaCooldown;
-        }else if(flameThrowerEnable && control.name == "4" && flameThrowerTimer <= 0f)
+        }
+        else if (flameThrowerEnable && control.name == "4" && flameThrowerTimer <= 0f)
         {
             FlameThrower();
             flameThrowerTimer = flameThrowerCooldown;
-        }else if (control.name == "x")
+        }
+        else if (control.name == "x")
         {
             PowerSelectionManager psm = FindObjectOfType<PowerSelectionManager>();
             if (psm != null)
@@ -247,10 +239,6 @@ public class PlayerController : MonoBehaviour
                 psm.ShowPowerSelection();
             }
         }
-
-        
-
-
     }
 
     public void IceRay()
@@ -285,9 +273,6 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(flameThrowerCooldown);
     }
 
-
-
-
     private void ThrowBomba()
     {
         gun.Throw();
@@ -316,20 +301,39 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     private IEnumerator SpeedBoostRoutine()
     {
-
         float baseSpeed = stats.moveSpeed;
-        stats.moveSpeed *= stats.speedBoostMultiplier;  
+        stats.moveSpeed *= stats.speedBoostMultiplier;
 
         yield return new WaitForSeconds(stats.speedBoostDuration);
 
-        stats.moveSpeed = baseSpeed; 
+        stats.moveSpeed = baseSpeed;
         isSpeedBoostActive = false;
-
     }
 
+    // ApplySlow: reduce player's moveSpeed by factor for duration (non-stacking)
+    public void ApplySlow(float factor, float duration)
+    {
+        if (isSlowed)
+            return;
+
+        if (slowCoroutine != null) StopCoroutine(slowCoroutine);
+        slowCoroutine = StartCoroutine(SlowRoutine(factor, duration));
+    }
+
+    private IEnumerator SlowRoutine(float factor, float duration)
+    {
+        isSlowed = true;
+        float baseSpeed = stats.moveSpeed;
+        stats.moveSpeed = baseSpeed * factor;
+
+        yield return new WaitForSeconds(duration);
+
+        stats.moveSpeed = baseSpeed;
+        isSlowed = false;
+        slowCoroutine = null;
+    }
 
     private void DoShockwave()
     {
@@ -356,12 +360,10 @@ public class PlayerController : MonoBehaviour
 
                 Vector3 dir = (enemy.transform.position - transform.position).normalized;
 
-                enemy.Knockback(dir, 10f, 1f); 
+                enemy.Knockback(dir, 10f, 1f);
             }
         }
     }
-
-
 
     private void JumpPressed(InputAction.CallbackContext obj)
     {
@@ -375,7 +377,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    
     private void FirePressed(InputAction.CallbackContext obj)
     {
         gun.Shoot(stats.attackDamage);
@@ -399,11 +400,11 @@ public class PlayerController : MonoBehaviour
         rotationX = Mathf.Clamp(rotationX, -90f, 90f);
         cam.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
         transform.Rotate(Vector3.up * mouseX);
-        
+
         Vector2 zqsdValue = zqsd.action.ReadValue<Vector2>();
         controller.Move(transform.TransformDirection(new Vector3(zqsdValue.x, 0, zqsdValue.y)).normalized * moveSensitivity * stats.moveSpeed * Time.deltaTime);
-        
-        velocity.y += gravity * Time.deltaTime *2f;
+
+        velocity.y += gravity * Time.deltaTime * 2f;
         controller.Move(velocity * Time.deltaTime);
 
         if (stunTimer > 0)
@@ -411,7 +412,7 @@ public class PlayerController : MonoBehaviour
             stunTimer -= Time.deltaTime;
             a1.UpdateCooldown(stunTimer, stunCooldown);
         }
-             
+
 
         if (speedBoostTimer > 0)
         {
@@ -419,19 +420,19 @@ public class PlayerController : MonoBehaviour
             a2.UpdateCooldown(speedBoostTimer, speedBoostCooldown);
         }
 
-        if(bombaTimer > 0)
+        if (bombaTimer > 0)
         {
             bombaTimer -= Time.deltaTime;
             a3.UpdateCooldown(bombaTimer, bombaCooldown);
         }
 
-        if(flameThrowerTimer > 0)
+        if (flameThrowerTimer > 0)
         {
             flameThrowerTimer -= Time.deltaTime;
             a4.UpdateCooldown(flameThrowerTimer, flameThrowerCooldown);
         }
 
-        if(iceRayTimer > 0)
+        if (iceRayTimer > 0)
         {
             iceRayTimer -= Time.deltaTime;
         }
