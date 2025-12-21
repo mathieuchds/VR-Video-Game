@@ -19,6 +19,10 @@
 *.blend1.meta
 *.meta
 
+# Photoshop
+*.psd
+
+
 # MemoryCaptures can get excessive in size.
 /[Mm]emory[Cc]aptures/
 
