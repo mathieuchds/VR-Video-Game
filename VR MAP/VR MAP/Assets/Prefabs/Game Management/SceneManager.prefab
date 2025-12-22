@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 6626740923682643189}
   - component: {fileID: 1724215158751255354}
   - component: {fileID: 6440741993182667034}
+  - component: {fileID: 4111202545617588227}
   m_Layer: 0
   m_Name: SceneManager
   m_TagString: Untagged
@@ -248,3 +249,39 @@ MonoBehaviour:
   maxRayHeight: 50
   groundSnapOffset: 0
   debugMode: 0
+--- !u!114 &4111202545617588227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7281560823030315171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5a4419124c365444bf3fa2f7b199baf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treesParent: {fileID: 0}
+  normalTreePrefabs:
+  - {fileID: 2471898502512046958, guid: e53fab55ad28bbd46aaa67f59f4eb76e, type: 3}
+  - {fileID: 1595357107441046934, guid: 461ca4de12a79a64fb974ff4803b5417, type: 3}
+  - {fileID: 7544265833837930587, guid: 2d1adbf38b052384487d999f969911d0, type: 3}
+  halloweenTreePrefabs:
+  - {fileID: 3547194741609500943, guid: d37a870c417deb84cb7e67404d045220, type: 3}
+  - {fileID: 7590501982292961628, guid: 04821b166b9f5a148b6209d219d7a442, type: 3}
+  - {fileID: 3664226488966345754, guid: d8dfc24c8629ba644824364c12897ad2, type: 3}
+  christmasTreePrefabs:
+  - {fileID: 4833340474945433726, guid: 8fcb13deaa00c4448870318b46392362, type: 3}
+  - {fileID: 3388705634670956138, guid: d9e1e1f4a10402344ab5083c862f9065, type: 3}
+  - {fileID: 1989775186386178666, guid: dfcfb68d91fcdf242b4350ffad7684f8, type: 3}
+  groundRoot: {fileID: 0}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  maxRayHeight: 50
+  groundSnapOffset: 0
+  groundPenetration: 0.05
+  additionalDownOffset: 0
+  randomScaleMin: 0.9
+  randomScaleMax: 1.1
+  randomizeYRotation: 1
